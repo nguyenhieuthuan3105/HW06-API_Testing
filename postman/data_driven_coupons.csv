@@ -1,0 +1,11 @@
+test_id,description,coupon_code,total_amount,user_id,expected_status,expected_success,expected_discount
+TC_DD_01,Thoa man tat ca C1-C5 (SAVE10 10%),SAVE10,500000,1,200,true,50000
+TC_DD_02,Thoa man tat ca C1-C5 (BIGBUY fixed 50k),BIGBUY,600000,1,200,true,50000
+TC_DD_03,Thoa man tat ca C1-C5 (VIP100 fixed 100k lan 1),VIP100,400000,1,200,true,100000
+TC_DD_04,Vi pham C3: Chua dat nguong toi thieu SAVE10 (299k < 300k),SAVE10,299000,1,400,false,0
+TC_DD_05,Vi pham C3: Chua dat nguong toi thieu BIGBUY (499k < 500k),BIGBUY,499000,1,400,false,0
+TC_DD_06,Vi pham C2: Ma het han su dung (EXPIRED),EXPIRED,200000,1,400,false,0
+TC_DD_07,Vi pham C1: Ma khong ton tai trong CSDL,NOTEXIST99,500000,1,400,false,0
+TC_DD_08,Bien: total_amount dung bang nguong toi thieu (SAVE10 300k),SAVE10,300000,1,200,true,30000
+TC_DD_09,Bien: total_amount = 0,SAVE10,0,1,400,false,0
+TC_DD_10,Bien: total_amount am,SAVE10,-100000,1,400,false,0

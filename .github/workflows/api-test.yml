@@ -1,0 +1,48 @@
+name: EShop Automated API Testing CI (FR-06, FR-09, FR-17)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          cache: 'npm'
+
+      - name: Install Newman & HTML Extra Reporter
+        run: |
+          npm install -g newman newman-reporter-htmlextra
+
+      - name: Start EShop Backend SUT
+        run: |
+          npm install
+          npm start &
+          npx wait-on http://127.0.0.1:3000 -t 30000
+
+      - name: Run Newman Test Suites
+        run: |
+          mkdir -p reports
+          newman run postman/eshop_api_collection.json \
+            -e postman/eshop_environment.json \
+            -r cli,htmlextra \
+            --reporter-htmlextra-export reports/newman_report.html \
+            --reporter-htmlextra-title "HW06 API Test Report (FR-06, FR-09, FR-17)"
+
+      - name: Upload Test Report Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-html-report
+          path: reports/newman_report.html
+          retention-days: 14
