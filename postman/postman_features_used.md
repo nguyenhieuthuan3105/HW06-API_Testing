@@ -27,7 +27,7 @@ Dưới đây là các tính năng kỹ thuật nâng cao của Postman được
 ## 3. Pre-request Scripts
 - **Tự động gắn Header `X-Student-Id` (Anti-AI-Cheat):**
   ```javascript
-  const studentId = pm.environment.get("student_id") || "25127001";
+  const studentId = pm.environment.get("student_id") || "23127125";
   pm.request.headers.upsert({
       key: "X-Student-Id",
       value: studentId

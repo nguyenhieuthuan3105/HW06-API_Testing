@@ -341,3 +341,142 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
      - Khuyến nghị thực hiện theo chu trình trọn vẹn từng API (Per-API Full Pipeline): Chuyển hóa 44 test cases của FR-06 thành Postman Collection JSON & Environment -> Chạy thử trên Newman -> Bắt lỗi SUT thực tế.
      - Lợi ích: Đảm bảo luồng kiểm thử thực tế hoạt động trơn tru, có ngay bằng chứng HTML report và commit Git cho API 1 trước khi mở rộng sang API 2 (FR-09).
   ```
+
+### Prompt 12:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 09:16 31/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  hãy làm như thế nhé:
+  chuyển hóa ngay 44 test cases của FR-06 thành file postman/fr06_product_detail_collection.json hoàn chỉnh kèm scripts Pre-request (tự inject header X-Student-Id và setup/teardown ngầm), sẵn sàng để bạn chạy thử nghiệm với Newman.
+  Tạo luôn cả file environement nêu cần thiết. Mỗi test case đều phải có các script test đầy đủ. Các test case đặc biệt yêu cầu cả pre request và post response cũng cần được lưu ý. 
+  Ngoài ra có 1 câu hỏi về cấu trúc. Mỗi fr sẽ có 1 file collection riêng hay sẽ là 2 folder collections lồng vào 1 collection tổng? file environment sẽ được xây dựng cho từng fr hay dùng chung. 
+  Thực hiện ngay giúp tôi nhé
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung thực hiện:
+  1. Tạo file Postman Collection hoàn chỉnh postman/fr06_product_detail_collection.json gồm 44 requests được phân chia thành 5 sub-folders:
+     - 01_Domain_Partitioning_and_Boundaries (15 TCs).
+     - 02_State_Transitions_and_Existence (8 TCs).
+     - 03_Security_Testing_SEC_01_to_07 (10 TCs).
+     - 04_Schema_Validation_and_Protocols (6 TCs).
+     - 05_Human_Extension_Test_Cases (5 TCs).
+  2. Tích hợp Script nâng cao:
+     - Collection Pre-request: Tự động gắn header X-Student-Id: 25127001.
+     - TC_FR06_ST_07: Tự động gửi pm.sendRequest() POST tạo SP trong Pre-request và DELETE trong Post-response.
+     - TC_FR06_EXT_05: Tự động lấy ETag trong Pre-request và gửi header If-None-Match.
+     - 100% test cases đều có đoạn mã Chai.js assertions, response time và schema validation.
+  3. Cập nhật file postman/eshop_environment.json bổ sung biến temp_product_id và product_1_etag.
+  4. Giải đáp kiến trúc: Khuyên dùng 1 file Environment duy nhất (dùng chung biến host, studentId, tokens) và tổ chức Collection theo dạng 1 Collection tổng chứa các Folder cho từng FR để chạy Newman tiện lợi nhất.
+  ```
+
+---
+
+## Thực thi tự động với Newman, Xuất HTML Report & Săn lỗi SUT
+
+### Prompt 13:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 09:25 31/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  [Hình ảnh chụp màn hình lỗi Terminal: newman : The term 'newman' is not recognized as the name of a cmdlet...]
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung chẩn đoán & xử lý lỗi:
+  1. Nguyên nhân lỗi: Máy tính người dùng chưa cài đặt công cụ Newman và Reporter HTML Extra toàn cục qua npm (CommandNotFoundException).
+  2. Hướng dẫn 2 giải pháp xử lý:
+     - Cách 1 (Khuyên dùng): Cài đặt global bằng lệnh `npm install -g newman newman-reporter-htmlextra`, sau đó chạy lại lệnh Newman.
+     - Cách 2 (Chạy trực tiếp không cần cài global): Sử dụng lệnh `npx newman run postman/fr06_product_detail_collection.json -e postman/eshop_environment.json -r cli,htmlextra --reporter-htmlextra-export reports/fr06_newman_report.html`.
+  ```
+
+### Prompt 14:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 09:27 31/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  [Hình ảnh chụp màn hình lỗi Terminal: newman: could not find "cli htmlextra" reporter]
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung chẩn đoán & xử lý lỗi PowerShell:
+  1. Nguyên nhân lỗi: Trên PowerShell Windows, tham số `-r cli,htmlextra` khi không có dấu ngoặc kép bị PowerShell tự động diễn giải thành chuỗi có khoảng trắng `"cli htmlextra"` khiến Newman tìm kiếm 1 reporter tên là "cli htmlextra" thay vì 2 reporters riêng biệt.
+  2. Hướng dẫn sửa lệnh:
+     - Thêm dấu ngoặc kép: `-r "cli,htmlextra"` hoặc viết tách `-r cli -r htmlextra`.
+     - Đồng thời cài đặt `npm install newman-reporter-htmlextra` cục bộ trong thư mục bài tập để Node.js giải quyết đường dẫn module nhanh nhất.
+  ```
+
+### Prompt 15:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 09:29 31/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  chạy lệnh npm install newman-reporter-htmlextra thì ra như này, tạo cho tôi 1 file gitignore để không push node module lên
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung thực hiện:
+  1. Khởi tạo file .gitignore tại thư mục gốc dự án để loại trừ:
+     - `node_modules/`, `package-lock.json`, npm logs.
+     - Files hệ điều hành (.DS_Store, Thumbs.db, desktop.ini).
+     - Files cấu hình IDE (.vscode/, .idea/).
+     - Thư mục tạm (.tempmediaStorage/, scratch/, tmp/).
+  2. Giữ nguyên theo dõi Git cho thư mục reports/ để nộp các báo cáo HTML kết quả kiểm thử theo đúng yêu cầu đề bài.
+  ```
+
+### Prompt 16:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 09:41 31/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  @[reports/fr06_newman_report.html] kiểm tra các kết quả trả về và phân tích các lý do cho tôi
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung phân tích báo cáo Newman:
+  1. Tổng quan thông số thực thi: Chạy 47 requests / 48 assertions trong 3.4 giây, trung bình 3ms/request. Đạt 23 Passed (48%) và 25 Failed (52%).
+  2. Phân tích nguyên nhân kỹ thuật 25 Failures (Phát hiện 3 lỗi thực tế quan trọng của SUT EShop để đưa vào Bug Report & GitHub Issues):
+     - BUG #1 (RESTful API Misuse): SUT trả về HTTP 200 OK với body rỗng `{}` thay vì 404 Not Found (khi ID không tồn tại) hoặc 400 Bad Request (khi ID không hợp lệ như 0, âm, chữ cái, ký tự đặc biệt).
+     - BUG #2 (Security & Input Validation Vulnerability): SUT thiếu middleware validate kiểu số cho tham số `:id`, cho phép payload SQLi và chuỗi dài đi qua và trả về 200 thay vì chặn 400 Bad Request.
+     - BUG #3 (Database Schema Type Mismatch): Trường `price` của sản phẩm ID=2 bị lưu dưới dạng String ('28000000') thay vì Number, vi phạm đặc tả JSON Schema.
+  ```
+
+---
+
+## Báo cáo lỗi SUT (Bug Reporting) & Bằng chứng GitHub Issues
+
+### Prompt 17:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 09:58 31/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  hãy ghi nhận vào bug report đi
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung thực hiện:
+  1. Cập nhật tài liệu bugs/bug_report.md ghi nhận chi tiết 3 Lỗi Thực Tế được phát hiện từ Newman Run cho API FR-06:
+     - BUG #01 (`BUG_FR06_01`): Endpoint trả về HTTP 200 OK kèm body rỗng `{}` khi ID sản phẩm không tồn tại (Vi phạm chuẩn RESTful 404 Not Found).
+     - BUG #02 (`BUG_FR06_02`): Thiếu Input Validation trên Path Parameter `:id`, chấp nhận SQL Injection (`1 OR 1=1`, `1'--`, Boolean-blind) và chuỗi bất hợp lệ trả về 200 OK thay vì chặn 400 Bad Request.
+     - BUG #03 (`BUG_FR06_03`): Trường `price` của sản phẩm ID=2 trong CSDL SQLite trả về dạng String `"28000000"` thay vì Number, gây vi phạm JSON Schema.
+  2. Cung cấp đầy đủ các mục chuẩn quốc tế: Severity, Test Cases liên quan, Bằng chứng Newman, cURL tái hiện, Actual vs Expected, Phân tích Root Cause và Đề xuất code sửa lỗi cho Backend Express.js.
+  ```

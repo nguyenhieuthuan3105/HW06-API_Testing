@@ -10,7 +10,7 @@
     },
     {
       "key": "student_id",
-      "value": "25127001",
+      "value": "23127125",
       "type": "default",
       "enabled": true
     },
@@ -58,6 +58,18 @@
     },
     {
       "key": "created_coupon_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "temp_product_id",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "product_1_etag",
       "value": "",
       "type": "default",
       "enabled": true

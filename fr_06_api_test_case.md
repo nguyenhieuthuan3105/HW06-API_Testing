@@ -9,7 +9,7 @@
 - **Method:** `GET`
 - **Authentication:** Public (Không yêu cầu Bearer Token)
 - **Base URL:** `http://localhost:3000`
-- **Header bắt buộc (Anti-AI-Cheat):** `X-Student-Id: 25127001`
+- **Header bắt buộc (Anti-AI-Cheat):** `X-Student-Id: 23127125`
 - **Mô tả nghiệp vụ:** Trả về thông tin chi tiết của một sản phẩm bao gồm:
   - `id`: Mã định danh số nguyên dương của sản phẩm.
   - `name`: Tên sản phẩm (chuỗi ký tự).

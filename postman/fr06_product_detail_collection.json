@@ -1,0 +1,1528 @@
+{
+  "info": {
+    "name": "HW06 - FR-06: Product Detail View Collection",
+    "_postman_id": "fr06-product-detail-collection-23127125",
+    "description": "Bộ kiểm thử tự động toàn diện 44 Test Cases cho API FR-06: Xem chi tiết sản phẩm (GET /api/products/:id) thuộc hệ thống EShop SUT.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Header Chống Gian Lận (Anti-AI-Cheat) bắt buộc theo đề bài",
+          "const studentId = pm.environment.get('student_id') || '23127125';",
+          "pm.request.headers.upsert({",
+          "    key: 'X-Student-Id',",
+          "    value: studentId",
+          "});",
+          "console.log(`[PRE-REQUEST] Injected X-Student-Id: ${studentId} to ${pm.request.url.toString()}`);"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01_Domain_Partitioning_and_Boundaries",
+      "item": [
+        {
+          "name": "TC_FR06_DP_01_Valid_Min_Integer_ID_1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_DP_01: Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('TC_FR06_DP_01: Response contains product with id=1', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.id).to.equal(1);",
+                  "    pm.expect(data).to.have.property('name');",
+                  "    pm.expect(data).to.have.property('price');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_DP_02_Valid_Intermediate_Integer_ID_2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_DP_02: Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('TC_FR06_DP_02: Product id is 2 and price > 0', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.id).to.equal(2);",
+                  "    pm.expect(data.price).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "2"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_DP_03_Valid_Seed_Dependency_ID_10",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_DP_03: Status is 200 (if exists) or 404 (if seed <= 5)', function () {",
+                  "    pm.expect([200, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "10"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_DP_04_Boundary_Zero_ID_0",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_DP_04: Status is 400 or 404 for ID=0', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "0"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_DP_05_Boundary_Negative_ID_Minus_1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_DP_05: Status code is 400 or 404 for negative ID', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/-1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "-1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_DP_06_Large_Negative_ID_Minus_99999",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_DP_06: Status code is 400 or 404', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/-99999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "-99999"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_DP_07_Boundary_Max_32Bit_Integer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_DP_07: Status code is 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/2147483647",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "2147483647"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_DP_08_Boundary_Overflow_32Bit_Integer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_DP_08: Status code is 400 or 404 for overflow integer', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/2147483648",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "2147483648"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_DP_09_Extreme_Large_Number_Robustness",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_DP_09: Status code is 400 or 404 for extreme integer', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/999999999999999999999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "999999999999999999999999"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_DP_10_Decimal_Float_ID_1_Point_5",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_DP_10: Status code is 400 or 404 for decimal ID', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1.5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1.5"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_DP_11_Decimal_Float_ID_1_Point_0",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_DP_11: Status code is 200 (if parsed as 1) or 400', function () {",
+                  "    pm.expect([200, 400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1.0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1.0"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_DP_12_Alphabetical_String_ID_abc",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_DP_12: Status code is 400 or 404 for non-numeric string', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "abc"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_DP_13_Alphanumeric_ID_prod123",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_DP_13: Status code is 400 or 404 for alphanumeric string', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/prod123",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "prod123"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_DP_14_UUID_Formatted_ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_DP_14: Status code is 400 or 404 for UUID string', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/550e8400-e29b-41d4-a716-446655440000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "550e8400-e29b-41d4-a716-446655440000"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_DP_15_Special_Characters_ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_DP_15: Status code is 400 or 404 for special characters', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/!@#$%^&*()",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "!@#$%^&*()"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02_State_Transitions_and_Existence",
+      "item": [
+        {
+          "name": "TC_FR06_ST_01_View_Active_Product_1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_ST_01: Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_ST_02_View_Product_Different_Category_2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_ST_02: Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "2"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_ST_03_Non_Existent_Product_999999",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_ST_03: Status code is 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "999999"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_ST_04_View_Product_ID_4",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_ST_04: Status code is 200 or 404', function () {",
+                  "    pm.expect([200, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/4",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "4"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_ST_05_View_Product_ID_5",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_ST_05: Status code is 200 or 404', function () {",
+                  "    pm.expect([200, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "5"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_ST_06_Idempotent_Repeated_GET",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_ST_06: Repeated GET on product 1 returns 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_ST_07_View_Immediately_After_Creation",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Tự động tạo sản phẩm tạm thời trong Pre-request",
+                  "const baseUrl = pm.environment.get('baseUrl') || 'http://localhost:3000';",
+                  "const studentId = pm.environment.get('student_id') || '23127125';",
+                  "const createReq = {",
+                  "    url: baseUrl + '/api/products',",
+                  "    method: 'POST',",
+                  "    header: {",
+                  "        'Content-Type': 'application/json',",
+                  "        'X-Student-Id': studentId",
+                  "    },",
+                  "    body: {",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify({",
+                  "            name: 'SP State Transition Temp',",
+                  "            price: 199000,",
+                  "            description: 'Temporary product created for state test',",
+                  "            imageUrl: 'https://placehold.co/300x300/png',",
+                  "            category_id: 1",
+                  "        })",
+                  "    }",
+                  "};",
+                  "pm.sendRequest(createReq, function (err, res) {",
+                  "    if (!err && (res.code === 200 || res.code === 201)) {",
+                  "        const json = res.json();",
+                  "        const createdId = json.id || json.data?.id || 1;",
+                  "        pm.environment.set('temp_product_id', createdId);",
+                  "        console.log('[SETUP] Created Temp Product ID:', createdId);",
+                  "    }",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_ST_07: Status code is 200 OK for newly created product', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "// Post-response: Xóa ngầm sản phẩm tạm thời để chuẩn bị cho ST_08",
+                  "const baseUrl = pm.environment.get('baseUrl') || 'http://localhost:3000';",
+                  "const tempId = pm.environment.get('temp_product_id');",
+                  "if (tempId) {",
+                  "    const deleteReq = {",
+                  "        url: baseUrl + '/api/products/' + tempId,",
+                  "        method: 'DELETE',",
+                  "        header: { 'X-Student-Id': pm.environment.get('student_id') || '23127125' }",
+                  "    };",
+                  "    pm.sendRequest(deleteReq, function (err, res) {",
+                  "        console.log('[TEARDOWN] Deleted Temp Product ID:', tempId);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{temp_product_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{temp_product_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_ST_08_View_Immediately_After_Hard_Delete",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_ST_08: Status code is 404 Not Found after hard delete', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{temp_product_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{temp_product_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03_Security_Testing_SEC_01_to_07",
+      "item": [
+        {
+          "name": "TC_FR06_SEC_01_SQLi_Tautology_1_OR_1=1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_SEC_01: SQLi is rejected with 400 Bad Request', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1 OR 1=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1 OR 1=1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_SEC_02_SQLi_Comment_Out_Quote",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_SEC_02: SQLi quote is rejected with 400', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1'--",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1'--"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_SEC_03_SQLi_Union_Select_Users",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_SEC_03: Union Select is rejected with 400', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1 UNION SELECT 1,username,password,4,5,6 FROM users--",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1 UNION SELECT 1,username,password,4,5,6 FROM users--"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_SEC_04_SQLi_Stacked_Query_Drop_Table",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_SEC_04: Stacked Query Drop Table rejected with 400', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1; DROP TABLE products;--",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1; DROP TABLE products;--"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_SEC_05_SQLi_Time_Based_RandomBlob_DoS",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_SEC_05: Status code is 400 or 404', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});",
+                  "pm.test('TC_FR06_SEC_05: Response time is below 1000ms (No DoS lock)', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1 AND 1=randomblob(100000000)",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1 AND 1=randomblob(100000000)"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_SEC_06_XSS_Payload_In_Path",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_SEC_06: XSS payload rejected with 400', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/<script>alert(1)</script>",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "<script>alert(1)</script>"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_SEC_07_Path_Traversal_Etc_Passwd",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_SEC_07: Path traversal rejected with 400 or 404', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/../../etc/passwd",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "..",
+                "..",
+                "etc",
+                "passwd"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_SEC_08_Null_Byte_Injection",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_SEC_08: Null byte rejected with 400', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1%00.jpg",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1%00.jpg"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_SEC_09_Buffer_Overflow_Long_String_DoS",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_SEC_09: Long buffer string handled safely', function () {",
+                  "    pm.expect([400, 404, 414]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_SEC_10_Error_Disclosure_No_SQLite_Leak",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_SEC_10: Response does not leak SQLite stack trace (SEC-07)', function () {",
+                  "    const body = pm.response.text();",
+                  "    pm.expect(body).to.not.include('sqlite3');",
+                  "    pm.expect(body).to.not.include('SQLITE_ERROR');",
+                  "    pm.expect(body).to.not.include('node_modules');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/invalid_syntax'",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "invalid_syntax'"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04_Schema_Validation_and_Protocols",
+      "item": [
+        {
+          "name": "TC_FR06_SCH_01_Success_JSON_Schema_Validation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_SCH_01: Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const productSchema = {",
+                  "    'type': 'object',",
+                  "    'required': ['id', 'name', 'price', 'description', 'imageUrl', 'category_id'],",
+                  "    'properties': {",
+                  "        'id': { 'type': 'integer', 'minimum': 1 },",
+                  "        'name': { 'type': 'string', 'minLength': 1 },",
+                  "        'price': { 'type': 'number', 'minimum': 0 },",
+                  "        'description': { 'type': 'string' },",
+                  "        'imageUrl': { 'type': 'string' },",
+                  "        'category_id': { 'type': 'integer' }",
+                  "    }",
+                  "};",
+                  "pm.test('TC_FR06_SCH_01: Body matches Product Detail JSON Schema', function () {",
+                  "    pm.response.to.have.jsonSchema(productSchema);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_SCH_02_Error_404_Schema_Validation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_SCH_02: Status code is 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "999999"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_SCH_03_Error_400_Schema_Validation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_SCH_03: Status code is 400 or 404', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "abc"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_SCH_04_Invalid_HTTP_Method_POST",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_SCH_04: POST on detail endpoint returns 404 or 405', function () {",
+                  "    pm.expect([404, 405]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_SCH_05_Header_Content_Type_JSON",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_SCH_05: Content-Type header is application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_SCH_06_Response_Time_SLA_Under_500ms",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_SCH_06: Response time is below 500ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05_Human_Extension_Test_Cases",
+      "item": [
+        {
+          "name": "TC_FR06_EXT_01_Leading_Zeros_Octal_00001",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_EXT_01: Leading zeros parsed to product 1 -> 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.id).to.equal(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/00001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "00001"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_EXT_02_SQLite_Boolean_Blind_SQLi_1_AND_1=1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_EXT_02: Boolean Blind SQLi is rejected with 400', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1 AND 1=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1 AND 1=1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_EXT_03_URL_Encoded_Whitespace_In_Path",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_EXT_03: Whitespace handled safely without 500 crash', function () {",
+                  "    pm.expect([200, 400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/%201%20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "%201%20"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_EXT_04_Full_Width_Unicode_Digit_Japanese_1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_EXT_04: Full-width Unicode digit rejected with 400', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/１",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "１"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_FR06_EXT_05_Conditional_Caching_ETag_If_None_Match",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Lấy ETag trước khi gửi request",
+                  "const baseUrl = pm.environment.get('baseUrl') || 'http://localhost:3000';",
+                  "pm.sendRequest(baseUrl + '/api/products/1', function (err, res) {",
+                  "    if (!err && res.code === 200) {",
+                  "        const etag = res.headers.get('ETag');",
+                  "        if (etag) {",
+                  "            pm.environment.set('product_1_etag', etag);",
+                  "            console.log('[CACHE] Pre-fetched ETag:', etag);",
+                  "        }",
+                  "    }",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('TC_FR06_EXT_05: Status code is 304 Not Modified (hoặc 200 nếu cache tắt)', function () {",
+                  "    pm.expect([200, 304]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "If-None-Match",
+                "value": "{{product_1_etag}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
