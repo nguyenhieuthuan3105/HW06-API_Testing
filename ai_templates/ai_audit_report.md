@@ -240,6 +240,31 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
   2. Xuất dữ liệu bảng Markdown chi tiết kèm mã Postman Chai.js assertion mẫu xác thực công thức tính toán tiền tệ.
   ```
 
+### Prompt 25 (Sinh kịch bản cho API 3 - FR-17: Admin Coupon CRUD):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 21:50 31/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  Tôi đang thực hiện kiểm thử API cho tính năng FR-17: Quản lý mã giảm giá Admin của hệ thống EShop.
+  - Endpoints: POST /api/admin/coupons, GET /api/coupons, DELETE /api/admin/coupons/:id
+  - Yêu cầu Header: Authorization: Bearer <admin_token>
+
+  Hãy thiết kế ít nhất 35 test cases bao phủ toàn diện: Domain Partitioning, CRUD State Flow, Security & RBAC, Schema Validation.
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung sinh kịch bản cho API 3 (FR-17: Admin Coupon CRUD):
+  1. Thiết kế tổng cộng 40 Test Cases chuyên sâu (vượt chỉ tiêu >= 35 TCs) được lưu trữ tại file fr_17_api_test_case.md:
+     - Nhóm 1 (Domain Partitioning & Boundaries khi Tạo Mã - 16 TCs): Tạo mã percent/fixed hợp lệ, code rỗng/trùng UNIQUE, type sai enum, discount_value = 0 / < 0 / > 100% / = 100%, min_order = 0 / < 0, max_uses = 0 / < 0, expired_at quá khứ và sai định dạng ngày.
+     - Nhóm 2 (CRUD Lifecycle Flow - 8 TCs): Chuỗi 6 bước trọn vẹn (Tạo mã -> Kiểm tra có trong List -> Áp dụng thành công -> Xóa mã -> Kiểm tra biến mất khỏi List -> Áp dụng lại báo lỗi 404), xóa với ID 999999 và ID chữ cái.
+     - Nhóm 3 (Security & RBAC - 10 TCs): Phân quyền RBAC (User thường gọi POST/DELETE bị 403 Forbidden), thiếu token (401 Unauthorized), token giả mạo, token hết hạn, SQLi trong code và param id xóa, Information disclosure.
+     - Nhóm 4 (Schema Validation & Protocols - 6 TCs): JSON Schema cho cả 3 endpoints POST (message, id), GET (mảng 8 trường), DELETE (message), HTTP method compliance PUT 405, Content-Type và SLA < 500ms.
+  2. Xuất dữ liệu bảng Markdown chi tiết kèm mã Postman Chai.js assertion mẫu xác thực schema danh sách coupon.
+  ```
+
 ---
 
 ## Rà soát (Audit) & Mở rộng (Extend >= 5 Test Cases) kịch bản kiểm thử
