@@ -211,6 +211,35 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
   3. Bổ sung đoạn mã Postman Test Script mẫu xác thực JSON Schema bằng thư viện Ajv cho sinh viên sử dụng khi import vào Postman.
   ```
 
+### Prompt 18 (Sinh kịch bản cho API 2 - FR-09: POST /api/apply-coupon):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 10:34 31/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  Tôi đang thực hiện kiểm thử API cho tính năng FR-09: Áp dụng mã giảm giá của hệ thống EShop.
+  - Endpoint: POST /api/apply-coupon
+  - Headers: Authorization: Bearer <user_token>, Content-Type: application/json
+  - Body: {"code": "SAVE10", "total_amount": 500000, "user_id": 1}
+  - 5 Ràng buộc điều kiện (Tất cả phải thỏa mãn): C1 (Active), C2 (Hạn dùng), C3 (Ngưỡng đơn), C4 (Đăng nhập), C5 (Lượt dùng)
+  - Mã mẫu: SAVE10 (10%, min 300k), BIGBUY (50k, min 500k), VIP100 (100k, min 300k, max 2), EXPIRED (20%, hạn 2020-01-01).
+  - Công thức: percent và fixed.
+
+  Hãy thiết kế ít nhất 35 test cases bao phủ toàn diện: Ma trận kết hợp C1-C5, BVA trên total_amount, Security SEC-01..07 (IDOR, Auth bypass, SQLi, Tampering), Schema Validation & Chai.js math.
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung sinh kịch bản cho API 2 (FR-09: POST /api/apply-coupon):
+  1. Thiết kế tổng cộng 40 Test Cases chuyên sâu (vượt chỉ tiêu >= 35 TCs) được lưu trữ tại file fr_09_api_test_case.md:
+     - Nhóm 1 (Ma trận 5 Điều kiện C1-C5 - 14 TCs): Bao phủ thỏa mãn cả 5 điều kiện (SAVE10, BIGBUY, VIP100), vi phạm đơn lẻ từng điều kiện C1 (mã sai/inactive), C2 (hết hạn EXPIRED), C3 (dưới min 300k), C4 (không token 401), C5 (hết lượt) và vi phạm kết hợp nhiều điều kiện (C1+C3, C2+C3, C3+C4), kiểm tra lượt dùng đa lần VIP100 (lần 1 và lần 2).
+     - Nhóm 2 (BVA & Domain trên total_amount - 10 TCs): Biên chính xác 300k, biên dưới 299,999, biên trên 300,001, bằng 0, số âm (-1, -500k), số cực lớn 999,999,999, số thập phân 500000.50, sai kiểu dữ liệu chữ và thiếu trường bắt buộc.
+     - Nhóm 3 (Security Testing SEC-01..07 - 10 TCs): Lỗ hổng IDOR SEC-03 (Token User 1 gửi user_id=2), Auth missing/tampered/expired SEC-02, SQL Injection SEC-01 (Tautology, Stacked queries), Client-side Parameter Tampering SEC-04 (gửi discount_amount khống), XSS trong code, Race condition SEC-06 và Error disclosure SEC-07.
+     - Nhóm 4 (Schema Validation & Math Logic - 6 TCs): JSON Schema Ajv, công thức tính toán % và fixed chính xác 100%, Error schema 400/401, HTTP method 405 và SLA response time < 500ms.
+  2. Xuất dữ liệu bảng Markdown chi tiết kèm mã Postman Chai.js assertion mẫu xác thực công thức tính toán tiền tệ.
+  ```
+
 ---
 
 ## Rà soát (Audit) & Mở rộng (Extend >= 5 Test Cases) kịch bản kiểm thử
@@ -295,6 +324,31 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
      - Tính khả thi: 100% khả thi và rất tối ưu (thời gian thực thi chỉ mất khoảng 1.5 - 3 giây cho 44 requests trên localhost).
      - Phân tích phụ thuộc thứ tự: Đặt Request lấy ETag trước Request kiểm tra If-None-Match; các test case đọc (GET) không làm biến đổi CSDL (Idempotent) nên chạy tuần tự hoàn toàn an toàn.
      - Dự đoán kết quả thực tế & Săn Bug: Một số ca kiểm thử SQLi/Chuỗi có thể trả về 500 thay vì 400 do backend Express/SQLite chưa bắt lỗi kỹ -> Đây chính là cơ sở để báo cáo Bug Report hợp lệ.
+  ```
+
+### Prompt 19 (Rà soát & Mở rộng Kịch bản FR-09):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 11:06 31/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  chỉ tập trung về phần api req và res, tái kiểm tra mọi test case mà bạn đã tạo ra trong @[d:\STD\Y3\Y3S3\KiemThuPM\hw\hw6\fr_09_api_test_case.md] có hợp lệ không? có thể gợi ý cho tôi 5 test case không?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung rà soát & đề xuất mở rộng FR-09:
+  1. Rà soát cấu trúc Request & Response thực tế trên SUT:
+     - Chuẩn hóa Response Schema: SUT trả về `{ success: true, coupon_id, discount_amount, final_amount, message }` thay vì key `valid` hay `original_total` của AI sinh.
+     - Phát hiện lỗ hổng C4: SUT thực tế không gắn middleware authenticateToken (đây là Security Bug cần săn).
+     - Cơ chế C5: Bảng coupon_usage chỉ được ghi khi gọi API riêng /api/coupon-usage, do đó test case hết lượt cần có Pre-request script để trigger lịch sử sử dụng.
+  2. Đề xuất 5 Test Cases Mở Rộng độc đáo (Human Extension):
+     - EXT_01: Bắt lỗi toán tử so sánh biên `total_amount == min_order_amount` (300k vs 300k).
+     - EXT_02: Giảm giá Fixed lớn hơn đơn hàng (`final_amount >= 0`).
+     - EXT_03: Chuẩn hóa chữ thường/hoa (`save10` vs `SAVE10`).
+     - EXT_04: Lọc khoảng trắng thừa (`" SAVE10 "`).
+     - EXT_05: Kiểm thử tự động Data-Driven Testing quét 10 bộ dữ liệu từ file CSV data_driven_coupons.csv.
   ```
 
 ---
