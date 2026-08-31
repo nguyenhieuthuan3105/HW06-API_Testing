@@ -351,6 +351,26 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
      - EXT_05: Kiểm thử tự động Data-Driven Testing quét 10 bộ dữ liệu từ file CSV data_driven_coupons.csv.
   ```
 
+### Prompt 23 (Ghi nhận Rà soát Chống Assertion Lỏng lẻo vào Human Fix):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 21:42 31/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  ghi nhận luôn phần chưa xác định chặt các điều kiện status code... ở phía trên vào human_fix nữa nhé
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung thực hiện:
+  1. Cập nhật tài liệu human_fix.md và help/human_fix.md ghi nhận chi tiết bản phân tích Rà soát Con người (Human Audit) cho cả FR-06 và FR-09.
+  2. Bổ sung mục phân tích kỹ thuật quan trọng: "Chống lỗi Assertion lỏng lẻo (Tolerant Assertion Anti-Pattern)":
+     - Phân tích nguyên nhân: Việc dùng `pm.expect([200, 401]).to.include(code)` khiến các lỗi nghiêm trọng của SUT (như thiếu Auth C4 trả về 200, lỗi toán học %, lỗi so sánh biên C3) bị đánh giá nhầm là PASSED (False Positive).
+     - Giải pháp Human Fix: Chuyển toàn bộ assertions sang chuẩn nghiêm ngặt theo đặc tả (Strict Specification Assertions), giúp Newman bắt trúng 100% các lỗi thực tế để đưa vào Bug Report.
+  3. Cung cấp đầy đủ Bảng Audit 40 test cases FR-09 và 5 test cases Human Extension.
+  ```
+
 ---
 
 ## Xây dựng Postman Collection, Environments & Advanced Scripting
@@ -583,4 +603,41 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
      - BUG #02 (`BUG_FR06_02`): Thiếu Input Validation trên Path Parameter `:id`, chấp nhận SQL Injection (`1 OR 1=1`, `1'--`, Boolean-blind) và chuỗi bất hợp lệ trả về 200 OK thay vì chặn 400 Bad Request.
      - BUG #03 (`BUG_FR06_03`): Trường `price` của sản phẩm ID=2 trong CSDL SQLite trả về dạng String `"28000000"` thay vì Number, gây vi phạm JSON Schema.
   2. Cung cấp đầy đủ các mục chuẩn quốc tế: Severity, Test Cases liên quan, Bằng chứng Newman, cURL tái hiện, Actual vs Expected, Phân tích Root Cause và Đề xuất code sửa lỗi cho Backend Express.js.
+  ```
+
+### Prompt 22 (Cập nhật 3 Bugs của FR-09 vào Báo Cáo Lỗi):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 21:40 31/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  cập nhật các bug này vào bug report đi nhé
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung thực hiện:
+  1. Cập nhật file bugs/bug_report.md bổ sung thêm 3 Lỗi Thực Tế nghiêm trọng phát hiện được từ Newman Run của API FR-09 (nâng tổng số lên 6 Bugs):
+     - BUG #04 (`BUG_FR09_01`): Lỗ hổng Authentication Bypass — Endpoint POST /api/apply-coupon là Public API không gắn middleware xác thực Token, vi phạm điều kiện C4.
+     - BUG #05 (`BUG_FR09_02`): Lỗi tính toán Số học — Công thức tính giảm giá % tính ra số âm (-4.5 triệu) và đội giá đơn hàng lên 5 triệu (Critical Business Logic Math Defect).
+     - BUG #06 (`BUG_FR09_03`): Lỗi so sánh Giá trị Biên C3 — Đơn hàng có giá trị đúng bằng min_order_amount (300k) bị từ chối 400 Bad Request do viết nhầm dấu `>` thay vì `>=` (Off-by-one Defect).
+  2. Cung cấp đầy đủ các mục chuẩn quốc tế: Severity, Test Cases liên quan, Bằng chứng Newman, cURL tái hiện, Actual vs Expected, Phân tích Root Cause và Đề xuất code sửa lỗi cho Backend Express.js.
+  ```
+
+### Prompt 24 (Dọn dẹp File Trùng lặp Human Fix):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 21:46 31/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  co toi 2 file luon ne, check xem file ben ngoai co gi khac biet khong, khong thi xoa luon di
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung thực hiện:
+  1. Đối chiếu nội dung giữa 2 file: File `human_fix.md` ở thư mục gốc và `help/human_fix.md` hoàn toàn giống nhau 100% về nội dung đầy đủ (bao gồm cả phân tích FR-06 và FR-09).
+  2. Tiến hành xóa file trùng lặp `human_fix.md` ở thư mục gốc và giữ lại duy nhất file chính thức tại `help/human_fix.md` để giữ không gian làm việc sạch sẽ, ngăn nắp.
   ```

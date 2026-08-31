@@ -156,3 +156,158 @@ Khi kiểm thử sản phẩm `id = 2`, assertion kiểm tra kiểu số bị FA
 ### Phân tích nguyên nhân gốc rễ (Root Cause) & Đề xuất khắc phục (Fix):
 - **Nguyên nhân:** Khi khởi tạo seed data CSDL SQLite (`database.sqlite`), câu lệnh `INSERT INTO products (id, name, price, ...)` đã truyền `'28000000'` dưới dạng text, hoặc cột `price` được định nghĩa là `TEXT` thay vì `REAL`/`INTEGER`.
 - **Cách khắc phục:** Sửa schema bảng SQLite thành `price REAL NOT NULL` hoặc ép kiểu `Number(product.price)` trước khi trả về client.
+
+---
+
+## 4. BUG #04: [FR-09][SEC-02] Lỗ hổng Authentication Bypass — Endpoint `/api/apply-coupon` không xác thực Bearer JWT Token (Vi phạm Điều kiện C4)
+
+- **Mã Bug:** `BUG_FR09_01`
+- **Mã chức năng:** FR-09: Áp dụng mã giảm giá (`POST /api/apply-coupon`)
+- **Mức độ nghiêm trọng (Severity):** **High / Security (SEC-02 - Missing Authentication)**
+- **Các Test Cases phát hiện lỗi:** `TC_FR09_COND_08`, `TC_FR09_COND_12`, `TC_FR09_SEC_02`, `TC_FR09_SEC_03`, `TC_FR09_SEC_04`
+- **Báo cáo Newman minh chứng:** File [`reports/fr09_newman_report.html`](../reports/fr09_newman_report.html)
+- **Link GitHub Issue:** `https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/4`
+
+### Mô tả chi tiết:
+Đặc tả nghiệp vụ Điều kiện C4 nêu rõ: *"Người dùng phải đăng nhập và có JWT Token hợp lệ"*. Nếu không có token, token giả hoặc token hết hạn, API phải phản hồi **`401 Unauthorized`**.
+Thực tế trong mã nguồn backend (`server.js`), route `POST /api/apply-coupon` là một Public API không gắn middleware `authenticateToken`. Người dùng ẩn danh gửi request không có token hoặc token rác vẫn được hệ thống áp mã thành công với mã **`200 OK`**.
+
+### Các bước tái hiện (Steps to Reproduce):
+1. Gửi request áp mã giảm giá mà không kèm header `Authorization`:
+   ```bash
+   curl -X POST "http://localhost:3000/api/apply-coupon" \
+        -H "Content-Type: application/json" \
+        -H "X-Student-Id: 25127001" \
+        -d '{"code": "SAVE10", "total_amount": 500000, "user_id": 1}'
+   ```
+2. Quan sát phản hồi của server.
+
+### Kết quả Thực tế (Actual Result):
+- **HTTP Status Code:** `200 OK`
+- **Response Body:** Áp dụng mã thành công, không đòi hỏi xác thực.
+
+### Kết quả Mong đợi (Expected Result):
+- **HTTP Status Code:** `401 Unauthorized`
+- **Response Body:** `{"error": "Unauthorized"}`
+
+### Phân tích nguyên nhân gốc rễ (Root Cause) & Đề xuất khắc phục (Fix):
+- **Nguyên nhân:** Lập trình viên quên gắn middleware `authenticateToken` vào khai báo route Express:
+  ```javascript
+  // Hiện tại trong server.js:
+  app.post("/api/apply-coupon", (req, res) => { ... });
+  ```
+- **Cách khắc phục:**
+  ```javascript
+  // Cần sửa thành:
+  app.post("/api/apply-coupon", authenticateToken, (req, res) => {
+      const userId = req.user.id; // Lấy trực tiếp từ Token đã xác thực
+      // ...
+  });
+  ```
+
+---
+
+## 5. BUG #05: [FR-09] Lỗi Tính Toán Số Học — Công thức tính giảm giá theo phần trăm (percent) cho kết quả âm và đội giá đơn hàng (Critical Math Defect)
+
+- **Mã Bug:** `BUG_FR09_02`
+- **Mã chức năng:** FR-09: Áp dụng mã giảm giá (`POST /api/apply-coupon`)
+- **Mức độ nghiêm trọng (Severity):** **Critical / Business Logic Math Error**
+- **Test Case phát hiện lỗi:** `TC_FR09_SCH_02_Math_Percent_Calculation_Accuracy`
+- **Báo cáo Newman minh chứng:** File [`reports/fr09_newman_report.html`](../reports/fr09_newman_report.html)
+- **Link GitHub Issue:** `https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/5`
+
+### Mô tả chi tiết:
+Công thức nghiệp vụ quy định: Với mã loại `percent` (như `SAVE10` giảm 10%), tiền giảm giá $\text{discount\_amount} = \text{total} \times \text{value} / 100$, tổng tiền thanh toán $\text{final\_amount} = \text{total} - \text{discount\_amount}$.
+Đơn hàng 500,000 ₫ áp mã 10% phải giảm 50,000 ₫ (thanh toán 450,000 ₫).
+Tuy nhiên, backend tính ra `discount_amount = -4,500,000 ₫` và `final_amount = 5,000,000 ₫` (tiền thanh toán bị tăng gấp 10 lần!).
+
+### Các bước tái hiện (Steps to Reproduce):
+1. Gửi request áp mã `SAVE10` (giảm 10%) cho đơn hàng 500,000 ₫:
+   ```bash
+   curl -X POST "http://localhost:3000/api/apply-coupon" \
+        -H "Content-Type: application/json" \
+        -H "X-Student-Id: 25127001" \
+        -d '{"code": "SAVE10", "total_amount": 500000, "user_id": 1}'
+   ```
+2. Kiểm tra giá trị `discount_amount` và `final_amount` trong phản hồi.
+
+### Kết quả Thực tế (Actual Result):
+```json
+{
+  "success": true,
+  "coupon_id": 1,
+  "discount_amount": -4500000,
+  "final_amount": 5000000,
+  "message": "Áp dụng thành công! Giảm 10%"
+}
+```
+
+### Kết quả Mong đợi (Expected Result):
+```json
+{
+  "success": true,
+  "coupon_id": 1,
+  "discount_amount": 50000,
+  "final_amount": 450000,
+  "message": "Áp dụng thành công! Giảm 10%"
+}
+```
+
+### Phân tích nguyên nhân gốc rễ (Root Cause) & Đề xuất khắc phục (Fix):
+- **Nguyên nhân:** Trong `server.js` (dòng 399-401 & 419-421), lập trình viên viết sai công thức số học:
+  ```javascript
+  if (coupon.type === "percent") {
+      discount_amount = Math.floor(total_amount * (1 - coupon.discount_value));
+  }
+  ```
+  Vì `coupon.discount_value = 10`, nên `(1 - 10) = -9`.
+- **Cách khắc phục:**
+  ```javascript
+  if (coupon.type === "percent") {
+      discount_amount = Math.floor(total_amount * (coupon.discount_value / 100));
+  }
+  ```
+
+---
+
+## 6. BUG #06: [FR-09] Lỗi So Sánh Giá Trị Biên Ngưỡng Tối Thiểu C3 — Đơn hàng đúng bằng `min_order_amount` bị từ chối `400 Bad Request` (Off-by-One Defect)
+
+- **Mã Bug:** `BUG_FR09_03`
+- **Mã chức năng:** FR-09: Áp dụng mã giảm giá (`POST /api/apply-coupon`)
+- **Mức độ nghiêm trọng (Severity):** **Medium / Boundary Logic Defect**
+- **Các Test Cases phát hiện lỗi:** `TC_FR09_EXT_01`, `TC_FR09_EXT_05 (Iteration 8)`
+- **Báo cáo Newman minh chứng:** File [`reports/fr09_newman_report.html`](../reports/fr09_newman_report.html), [`reports/fr09_data_driven_report.html`](../reports/fr09_data_driven_report.html)
+- **Link GitHub Issue:** `https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/6`
+
+### Mô tả chi tiết:
+Điều kiện C3 trong tài liệu đặc tả quy định: *"Đủ ngưỡng đơn hàng: Tổng đơn hàng $\ge$ (lớn hơn hoặc bằng) `min_order_amount`"*.
+Khi khách hàng mua đơn hàng có giá trị chính xác bằng ngưỡng tối thiểu (ví dụ `total_amount = 300,000 ₫` đối với mã `SAVE10`), hệ thống bắt buộc phải chấp nhận và phản hồi mã trạng thái **`200 OK`**.
+Tuy nhiên, backend SUT lại từ chối với mã **`400 Bad Request`** và báo lỗi *"Đơn hàng chưa đủ giá trị tối thiểu"*.
+
+### Các bước tái hiện (Steps to Reproduce):
+1. Gửi request với `total_amount` bằng đúng `min_order_amount` (300,000 ₫):
+   ```bash
+   curl -X POST "http://localhost:3000/api/apply-coupon" \
+        -H "Content-Type: application/json" \
+        -H "X-Student-Id: 25127001" \
+        -d '{"code": "SAVE10", "total_amount": 300000, "user_id": 1}'
+   ```
+2. Quan sát HTTP status và thông báo trả về.
+
+### Kết quả Thực tế (Actual Result):
+- **HTTP Status Code:** `400 Bad Request`
+- **Response Body:** `{"error": "Đơn hàng chưa đủ giá trị tối thiểu 300.000 ₫ để áp dụng mã này"}`
+
+### Kết quả Mong đợi (Expected Result):
+- **HTTP Status Code:** `200 OK`
+- **Response Body:** Áp dụng mã thành công, giảm 30,000 ₫, thanh toán 270,000 ₫.
+
+### Phân tích nguyên nhân gốc rễ (Root Cause) & Đề xuất khắc phục (Fix):
+- **Nguyên nhân:** Trong `server.js` (dòng 379), câu lệnh điều kiện dùng toán tử `>` (lớn hơn hẳn) thay vì `>=` (lớn hơn hoặc bằng):
+  ```javascript
+  if (total_amount > coupon.min_order_amount) { ... }
+  ```
+- **Cách khắc phục:**
+  ```javascript
+  if (total_amount >= coupon.min_order_amount) { ... }
+  ```
