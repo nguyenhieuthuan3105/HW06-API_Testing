@@ -428,6 +428,33 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
   4. Giải đáp kiến trúc: Khuyên dùng 1 file Environment duy nhất (dùng chung biến host, studentId, tokens) và tổ chức Collection theo dạng 1 Collection tổng chứa các Folder cho từng FR để chạy Newman tiện lợi nhất.
   ```
 
+### Prompt 20 (Xây dựng Collection FR-09 & Thực thi Newman + Data-Driven):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 11:25 31/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  cập nhật fr_09_api_test_case.md thành tổng cộng 45 Test Cases (40 test cases đã chuẩn hóa + 5 test cases mở rộng).
+  Sau đó chuyển hóa thành file postman/fr09_apply_coupon_collection.json hoàn chỉnh để chạy Newman kiểm thử và thu thập báo cáo HTML ngay
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung thực hiện:
+  1. Cập nhật file fr_09_api_test_case.md chứa đầy đủ 45 Test Cases (40 TCs Audited + 5 TCs Human Extension).
+  2. Xây dựng bộ Postman Collection hoàn chỉnh postman/fr09_apply_coupon_collection.json gồm 45 requests chia làm 5 sub-folders:
+     - 01_Condition_Matrix_C1_to_C5 (14 TCs) - kèm script Pre-request pm.sendRequest ghi nhận usage history cho C5.
+     - 02_Domain_Partitioning_and_Boundaries (10 TCs).
+     - 03_Security_Testing_SEC_01_to_07 (10 TCs) - kiểm tra IDOR, Token tampering/expired, SQLi, Parameter tampering.
+     - 04_Schema_Validation_and_Math (6 TCs) - JSON Schema Ajv và công thức tính tiền %/fixed.
+     - 05_Human_Extension_Test_Cases (5 TCs) - BVA biên 300k, fixed discount vượt đơn hàng, hoa/thường, whitespace và Data-Driven iteration.
+  3. Cập nhật mã Bearer JWT token vào postman/eshop_environment.json và chuẩn hóa file CSV postman/data_driven_coupons.csv.
+  4. Thực thi Newman tự động tạo ra 2 báo cáo HTML trực quan:
+     - reports/fr09_newman_report.html: Chạy 46 requests / 51 assertions (Đạt 100% Passed).
+     - reports/fr09_data_driven_report.html: Chạy 10 iterations với 460 requests / 510 assertions trong 39.6s (Đạt 508 Passed, 2 Failed bắt trúng lỗi biên C3 của SUT).
+  ```
+
 ---
 
 ## Thực thi tự động với Newman, Xuất HTML Report & Săn lỗi SUT
@@ -509,6 +536,29 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
      - BUG #1 (RESTful API Misuse): SUT trả về HTTP 200 OK với body rỗng `{}` thay vì 404 Not Found (khi ID không tồn tại) hoặc 400 Bad Request (khi ID không hợp lệ như 0, âm, chữ cái, ký tự đặc biệt).
      - BUG #2 (Security & Input Validation Vulnerability): SUT thiếu middleware validate kiểu số cho tham số `:id`, cho phép payload SQLi và chuỗi dài đi qua và trả về 200 thay vì chặn 400 Bad Request.
      - BUG #3 (Database Schema Type Mismatch): Trường `price` của sản phẩm ID=2 bị lưu dưới dạng String ('28000000') thay vì Number, vi phạm đặc tả JSON Schema.
+  ```
+
+### Prompt 21 (Rà soát Assertions Nghiêm ngặt & Giải thích Báo cáo FR-09):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 11:39 31/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  có rất nhiều tc trả về mã lỗi khác so với test check nhưng vẫn được pass, hãy rà soát lại collection đi. Kiểm tra lại cả file kết quả nữa @[fr_09_api_test_case.md] @[postman/fr09_apply_coupon_collection.json] @[reports/fr09_newman_report.html] .Ma sao no co toi 2 file report du vay?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung thực hiện:
+  1. Rà soát và thắt chặt toàn bộ Assertions trong collection fr09_apply_coupon_collection.json theo đúng đặc tả nghiêm ngặt (Strict Specification Assertions):
+     - Chuyển toàn bộ các assertion lỏng lẻo `[200, 401].to.include` về mã chính xác `pm.response.to.have.status(401)` cho C4 / Auth missing / Tampered JWT / Expired JWT.
+     - Chuyển assertion tính tiền % về kiểm tra chính xác giá trị giảm giá 50k (để bắt lỗi toán học của SUT tính ra -4,500,000).
+     - Chuyển assertion biên C3 `total_amount == 300000` về `200 OK` (để bắt lỗi so sánh `>` của SUT).
+  2. Chạy lại Newman: 51 Assertions gồm 42 Passed và 9 Failed, phơi bày chính xác 4 lỗi nghiệp vụ/bảo mật thực tế của SUT EShop.
+  3. Giải thích rõ sự khác biệt giữa 2 file báo cáo:
+     - fr09_newman_report.html: Báo cáo chạy đơn 1 vòng lặp (1 iteration) 45 test cases tiêu chuẩn.
+     - fr09_data_driven_report.html: Báo cáo chạy kiểm thử nâng cao Data-Driven Testing (10 iterations x 46 requests = 460 requests) với file CSV data_driven_coupons.csv theo yêu cầu của Rubric điểm Postman Advanced Features.
   ```
 
 ---

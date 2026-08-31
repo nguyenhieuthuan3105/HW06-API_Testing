@@ -40,13 +40,13 @@
     },
     {
       "key": "admin_token",
-      "value": "",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzg4MTUwNDA3fQ.MUD0StVBn3ICinVQVmxl5SexP_uxUDiqbh86tCYBWUs",
       "type": "secret",
       "enabled": true
     },
     {
       "key": "user_token",
-      "value": "",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODgxNTA0MDF9.O1q2bPdf-CqEjPO_d9Qs3fpeyiZNXmHd326ydax4ScA",
       "type": "secret",
       "enabled": true
     },

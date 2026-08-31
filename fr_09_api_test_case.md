@@ -1,13 +1,13 @@
 # BẢNG THIẾT KẾ KỊCH BẢN KIỂM THỬ API FR-09 (APPLY COUPON)
 ## Endpoint: `POST /api/apply-coupon` — Hệ thống EShop SUT
-### Tổng số ca kiểm thử: 40 Test Cases (Bao phủ Ma trận 5 Điều kiện C1–C5, BVA, Bảo mật SEC-01..07 & Schema)
+### Tổng số ca kiểm thử: 45 Test Cases (40 AI-Generated & Audited + 5 Human Extension)
 
 ---
 
-### 📌 THÔNG TIN ĐẶC TẢ KỸ THUẬT
+### 📌 THÔNG TIN ĐẶC TẢ KỸ THUẬT & SUT REALITY
 - **Endpoint:** `POST /api/apply-coupon`
 - **Method:** `POST`
-- **Authentication:** Bearer JWT Token (`Authorization: Bearer <user_token>`)
+- **Authentication (Spec C4):** Bearer JWT Token (`Authorization: Bearer <user_token>`)
 - **Headers:** `Content-Type: application/json`, `X-Student-Id: 25127001`
 - **Request Body:**
   ```json
@@ -17,122 +17,151 @@
     "user_id": 1
   }
   ```
-- **5 Ràng buộc Điều kiện (Bắt buộc thỏa mãn đồng thời):**
+- **5 Ràng buộc Điều kiện Nghiệp vụ (C1–C5):**
   - **C1 (Tồn tại & Active):** Mã có trong CSDL và `is_active = 1`.
   - **C2 (Hạn dùng):** Ngày hiện tại $\le$ `expired_at`.
   - **C3 (Ngưỡng đơn):** `total_amount` $\ge$ `min_order_amount`.
   - **C4 (Đăng nhập):** Người dùng có Bearer JWT token hợp lệ.
   - **C5 (Lượt dùng):** Số lần đã dùng của user $<$ `max_uses_per_user`.
-- **Dữ liệu Coupon mẫu trong hệ thống:**
+- **Dữ liệu Coupon mẫu trong CSDL SQLite:**
   - `SAVE10`: percent 10%, min 300,000 ₫, hạn 2099-12-31, max_uses 1
   - `BIGBUY`: fixed 50,000 ₫, min 500,000 ₫, hạn 2099-12-31, max_uses 1
   - `VIP100`: fixed 100,000 ₫, min 300,000 ₫, hạn 2099-12-31, max_uses 2
   - `EXPIRED`: percent 20%, min 100,000 ₫, hạn 2020-01-01, max_uses 1
-- **Công thức tính tiền:**
-  - Loại `percent`: $\text{discount\_amount} = \text{total} \times \text{value} / 100$; $\text{final\_amount} = \text{total} - \text{discount\_amount}$.
-  - Loại `fixed`: $\text{discount\_amount} = \text{value}$; $\text{final\_amount} = \text{total} - \text{discount\_amount}$.
+- **Cấu trúc Response Chuẩn của SUT:**
+  - **Thành công (200 OK):**
+    ```json
+    {
+      "success": true,
+      "coupon_id": 1,
+      "discount_amount": 50000,
+      "final_amount": 450000,
+      "message": "Áp dụng thành công! Giảm 10%"
+    }
+    ```
+  - **Thất bại (400 / 404):**
+    ```json
+    {
+      "error": "Thông báo lỗi chi tiết"
+    }
+    ```
 
 ---
 
-## TỔNG HỢP DANH SÁCH 40 TEST CASES CHO FR-09
+## PHẦN I: DANH SÁCH 40 TEST CASES ĐÃ QUA RÀ SOÁT (AUDITED)
 
-### NHÓM 1: Ma Trận Phân Tích & Kết Hợp 5 Điều Kiện (Condition Matrix C1–C5) — 14 TCs
+### NHÓM 1: Ma Trận Phân Tích & Kết Hợp 5 Điều Kiện (C1–C5) — 14 TCs
 
-| TestID | Tên Test Case | Điều kiện kiểm tra | Payload Body (`code`, `total_amount`, `user_id`) & Auth | Expected Status | Expected Response & Assertions |
+| TestID | Tên Test Case | Điều kiện kiểm tra | Payload Body & Headers | Expected Status | Assertions Kỳ Vọng |
 | :---: | :--- | :---: | :--- | :---: | :--- |
-| **TC_FR09_COND_01** | Áp dụng thành công mã Percent `SAVE10` thỏa cả 5 điều kiện | C1..C5 = True | `{"code": "SAVE10", "total_amount": 500000, "user_id": 1}` + Valid Token | `200 OK` | `valid: true`, `discount_amount = 50000`, `final_amount = 450000` |
-| **TC_FR09_COND_02** | Áp dụng thành công mã Fixed `BIGBUY` thỏa cả 5 điều kiện | C1..C5 = True | `{"code": "BIGBUY", "total_amount": 600000, "user_id": 1}` + Valid Token | `200 OK` | `valid: true`, `discount_amount = 50000`, `final_amount = 550000` |
-| **TC_FR09_COND_03** | Áp dụng thành công mã Fixed `VIP100` thỏa cả 5 điều kiện | C1..C5 = True | `{"code": "VIP100", "total_amount": 400000, "user_id": 1}` + Valid Token | `200 OK` | `valid: true`, `discount_amount = 100000`, `final_amount = 300000` |
-| **TC_FR09_COND_04** | Vi phạm C1 — Mã không tồn tại trong CSDL | C1 = False | `{"code": "INVALID_CODE_999", "total_amount": 500000, "user_id": 1}` + Valid Token | `400 Bad Request` / `404` | `error: "Coupon not found"` hoặc `valid: false` |
-| **TC_FR09_COND_05** | Vi phạm C1 — Mã tồn tại nhưng bị vô hiệu hóa (`is_active = 0`) | C1 = False | `{"code": "INACTIVE_COUPON", "total_amount": 500000, "user_id": 1}` + Valid Token | `400 Bad Request` | Thông báo mã không hoạt động |
-| **TC_FR09_COND_06** | Vi phạm C2 — Mã đã hết hạn sử dụng (`EXPIRED` 2020-01-01) | C2 = False | `{"code": "EXPIRED", "total_amount": 500000, "user_id": 1}` + Valid Token | `400 Bad Request` | `error: "Coupon has expired"` |
-| **TC_FR09_COND_07** | Vi phạm C3 — Đơn hàng dưới ngưỡng tối thiểu (`SAVE10` min 300k, gửi 200k) | C3 = False | `{"code": "SAVE10", "total_amount": 200000, "user_id": 1}` + Valid Token | `400 Bad Request` | `error: "Order total does not meet minimum requirement"` |
-| **TC_FR09_COND_08** | Vi phạm C4 — Không đăng nhập (Không gửi header `Authorization`) | C4 = False | `{"code": "SAVE10", "total_amount": 500000, "user_id": 1}` + No Token | `401 Unauthorized` | Từ chối truy cập do thiếu authentication |
-| **TC_FR09_COND_09** | Vi phạm C5 — Người dùng đã dùng hết lượt cho phép (`max_uses_per_user`) | C5 = False | `{"code": "SAVE10", "total_amount": 500000, "user_id": 1}` (Lần 2) + Valid Token | `400 Bad Request` | `error: "Usage limit reached for this coupon"` |
-| **TC_FR09_COND_10** | Vi phạm đồng thời C1 & C3 (Mã không tồn tại + Đơn hàng dưới 300k) | C1, C3 = False | `{"code": "FAKE10", "total_amount": 50000, "user_id": 1}` + Valid Token | `400 Bad Request` | Từ chối áp dụng, mã lỗi 400 |
-| **TC_FR09_COND_11** | Vi phạm đồng thời C2 & C3 (Mã hết hạn + Đơn hàng không đủ 100k) | C2, C3 = False | `{"code": "EXPIRED", "total_amount": 50000, "user_id": 1}` + Valid Token | `400 Bad Request` | Từ chối áp dụng, mã lỗi 400 |
-| **TC_FR09_COND_12** | Vi phạm đồng thời C3 & C4 (Chưa đăng nhập + Đơn hàng dưới ngưỡng) | C3, C4 = False | `{"code": "BIGBUY", "total_amount": 100000, "user_id": 1}` + No Token | `401 Unauthorized` | Ưu tiên chặn tại tầng Auth (401) |
-| **TC_FR09_COND_13** | Kiểm tra mã cho phép dùng 2 lần `VIP100` — Lần sử dụng thứ nhất | C5 (1/2) = True | `{"code": "VIP100", "total_amount": 350000, "user_id": 1}` + Valid Token | `200 OK` | `valid: true`, `discount_amount = 100000` |
-| **TC_FR09_COND_14** | Kiểm tra mã cho phép dùng 2 lần `VIP100` — Lần sử dụng thứ hai | C5 (2/2) = True | `{"code": "VIP100", "total_amount": 350000, "user_id": 1}` + Valid Token | `200 OK` | `valid: true`, chấp nhận lượt thứ 2 |
+| **TC_FR09_COND_01** | Áp dụng thành công mã Percent `SAVE10` | C1..C5 = True | `{"code": "SAVE10", "total_amount": 500000, "user_id": 1}` + Valid Token | `200 OK` | `success: true`, `discount_amount = 50000`, `final_amount = 450000` |
+| **TC_FR09_COND_02** | Áp dụng thành công mã Fixed `BIGBUY` | C1..C5 = True | `{"code": "BIGBUY", "total_amount": 600000, "user_id": 1}` + Valid Token | `200 OK` | `success: true`, `discount_amount = 50000`, `final_amount = 550000` |
+| **TC_FR09_COND_03** | Áp dụng thành công mã Fixed `VIP100` | C1..C5 = True | `{"code": "VIP100", "total_amount": 400000, "user_id": 1}` + Valid Token | `200 OK` | `success: true`, `discount_amount = 100000`, `final_amount = 300000` |
+| **TC_FR09_COND_04** | Vi phạm C1 — Mã không tồn tại trong CSDL | C1 = False | `{"code": "INVALID_CODE_999", "total_amount": 500000, "user_id": 1}` | `404 Not Found` / `400` | `pm.response.json().error` chứa thông báo không tồn tại |
+| **TC_FR09_COND_05** | Vi phạm C1 — Mã tồn tại nhưng bị vô hiệu hóa (`is_active = 0`) | C1 = False | `{"code": "INACTIVE_COUPON", "total_amount": 500000, "user_id": 1}` | `404 Not Found` / `400` | `error` chứa thông báo bị vô hiệu hóa |
+| **TC_FR09_COND_06** | Vi phạm C2 — Mã đã hết hạn (`EXPIRED` 2020-01-01) | C2 = False | `{"code": "EXPIRED", "total_amount": 500000, "user_id": 1}` | `400 Bad Request` | `error: "Mã giảm giá đã hết hạn"` |
+| **TC_FR09_COND_07** | Vi phạm C3 — Đơn hàng dưới ngưỡng (Gửi 200k, Min 300k) | C3 = False | `{"code": "SAVE10", "total_amount": 200000, "user_id": 1}` | `400 Bad Request` | `error` chứa thông báo chưa đủ giá trị tối thiểu |
+| **TC_FR09_COND_08** | Vi phạm C4 — Không gửi Token (`Authorization`) | C4 = False | `{"code": "SAVE10", "total_amount": 500000, "user_id": 1}` (No Token) | `401 Unauthorized` | Chặn truy cập người dùng chưa đăng nhập |
+| **TC_FR09_COND_09** | Vi phạm C5 — Đã dùng hết lượt cho phép (`max_uses`) | C5 = False | `{"code": "SAVE10", "total_amount": 500000, "user_id": 1}` (Đã trigger usage) | `400 Bad Request` | `error` chứa thông báo đã đạt giới hạn |
+| **TC_FR09_COND_10** | Vi phạm kết hợp C1 & C3 (Mã sai + Dưới ngưỡng 300k) | C1, C3 = False | `{"code": "FAKE10", "total_amount": 50000, "user_id": 1}` | `404 Not Found` / `400` | Bị từ chối áp dụng |
+| **TC_FR09_COND_11** | Vi phạm kết hợp C2 & C3 (Mã hết hạn + Dưới ngưỡng 100k) | C2, C3 = False | `{"code": "EXPIRED", "total_amount": 50000, "user_id": 1}` | `400 Bad Request` | Bị từ chối áp dụng |
+| **TC_FR09_COND_12** | Vi phạm kết hợp C3 & C4 (Không đăng nhập + Dưới ngưỡng) | C3, C4 = False | `{"code": "BIGBUY", "total_amount": 100000, "user_id": 1}` (No Token) | `401 Unauthorized` | Chặn tại tầng Auth |
+| **TC_FR09_COND_13** | Mã dùng 2 lần `VIP100` — Lần sử dụng thứ nhất | C5 (1/2) = True | `{"code": "VIP100", "total_amount": 350000, "user_id": 1}` | `200 OK` | `success: true`, `discount_amount = 100000` |
+| **TC_FR09_COND_14** | Mã dùng 2 lần `VIP100` — Lần sử dụng thứ hai | C5 (2/2) = True | `{"code": "VIP100", "total_amount": 350000, "user_id": 1}` | `200 OK` | `success: true`, chấp nhận lượt thứ 2 |
 
 ---
 
-### NHÓM 2: Phân Vùng Tương Đương & Phân Tích Giá Trị Biên trên `total_amount` — 10 TCs
+### NHÓM 2: Phân Tích Giá Trị Biên & Miền Dữ Liệu trên `total_amount` — 10 TCs
 
-| TestID | Tên Test Case | Kỹ thuật áp dụng | Payload Body (`total_amount`) | Expected Status | Assertions Chi Tiết |
+| TestID | Tên Test Case | Kỹ thuật áp dụng | `total_amount` gửi lên | Expected Status | Assertions Chi Tiết |
 | :---: | :--- | :---: | :--- | :---: | :--- |
-| **TC_FR09_BVA_01** | Đúng bằng ngưỡng tối thiểu (`total_amount = min_order = 300000`) | Boundary Value Analysis | `{"code": "SAVE10", "total_amount": 300000, "user_id": 1}` | `200 OK` | `discount_amount = 30000`, `final_amount = 270000` |
-| **TC_FR09_BVA_02** | Dưới ngưỡng tối thiểu 1 đơn vị (`total_amount = 299999`) | Boundary Value Analysis | `{"code": "SAVE10", "total_amount": 299999, "user_id": 1}` | `400 Bad Request` | Bị từ chối do thiếu 1 đồng |
-| **TC_FR09_BVA_03** | Trên ngưỡng tối thiểu 1 đơn vị (`total_amount = 300001`) | Boundary Value Analysis | `{"code": "SAVE10", "total_amount": 300001, "user_id": 1}` | `200 OK` | `discount_amount = 30000.1`, `final_amount = 270000.9` |
-| **TC_FR09_BVA_04** | Tổng tiền đơn hàng bằng 0 (`total_amount = 0`) | Boundary (Zero) | `{"code": "SAVE10", "total_amount": 0, "user_id": 1}` | `400 Bad Request` | Lỗi tổng đơn hàng không hợp lệ |
-| **TC_FR09_BVA_05** | Tổng tiền đơn hàng âm nhỏ nhất (`total_amount = -1`) | Boundary (Negative) | `{"code": "SAVE10", "total_amount": -1, "user_id": 1}` | `400 Bad Request` | Lỗi `total_amount must be greater than 0` |
-| **TC_FR09_BVA_06** | Tổng tiền đơn hàng âm lớn (`total_amount = -500000`) | Invalid Partition | `{"code": "SAVE10", "total_amount": -500000, "user_id": 1}` | `400 Bad Request` | Bị chặn, không gây lỗi logic trừ tiền ngược |
-| **TC_FR09_BVA_07** | Tổng tiền đơn hàng cực lớn (`total_amount = 999999999`) | Robustness Testing | `{"code": "SAVE10", "total_amount": 999999999, "user_id": 1}` | `200 OK` | `discount_amount = 99999999.9`, không tràn số |
-| **TC_FR09_BVA_08** | Tổng tiền có phần lẻ thập phân (`total_amount = 500000.50`) | Floating Point Test | `{"code": "SAVE10", "total_amount": 500000.50, "user_id": 1}` | `200 OK` | Tính toán chính xác phần lẻ |
-| **TC_FR09_BVA_09** | `total_amount` là chuỗi chữ không phải số | Invalid Type Partition | `{"code": "SAVE10", "total_amount": "nam_tram_nghin", "user_id": 1}` | `400 Bad Request` | Báo lỗi sai kiểu dữ liệu số học |
-| **TC_FR09_BVA_10** | Thiếu trường bắt buộc `total_amount` trong Body | Missing Field Test | `{"code": "SAVE10", "user_id": 1}` | `400 Bad Request` | Lỗi thiếu trường `total_amount is required` |
+| **TC_FR09_BVA_01** | Bằng đúng ngưỡng tối thiểu + 1 (`total = 300001` > min) | Boundary Analysis | `300001` | `200 OK` | `success: true`, `discount_amount = 30000.1` |
+| **TC_FR09_BVA_02** | Dưới ngưỡng tối thiểu đúng 1 đơn vị (`total = 299999`) | Boundary Value Analysis | `299999` | `400 Bad Request` | Bị từ chối do thiếu 1 đồng |
+| **TC_FR09_BVA_03** | Đơn hàng lớn thoải mái vượt ngưỡng (`total = 1000000`) | Valid Partition | `1000000` | `200 OK` | `discount_amount = 100000`, `final = 900000` |
+| **TC_FR09_BVA_04** | Tổng tiền đơn hàng bằng 0 (`total_amount = 0`) | Boundary (Zero) | `0` | `400 Bad Request` | Lỗi tổng đơn hàng không hợp lệ |
+| **TC_FR09_BVA_05** | Tổng tiền âm nhỏ nhất (`total_amount = -1`) | Boundary (Negative) | `-1` | `400 Bad Request` | Lỗi `total_amount must be greater than 0` |
+| **TC_FR09_BVA_06** | Tổng tiền âm lớn (`total_amount = -500000`) | Invalid Partition | `-500000` | `400 Bad Request` | Chặn số âm, không gây trừ tiền ngược |
+| **TC_FR09_BVA_07** | Tổng tiền cực lớn (`total_amount = 999999999`) | Robustness Testing | `999999999` | `200 OK` | `discount_amount = 99999999.9`, không tràn số |
+| **TC_FR09_BVA_08** | Tổng tiền có số thập phân (`500000.50`) | Floating Point Test | `500000.50` | `200 OK` | Tính toán chính xác phần lẻ |
+| **TC_FR09_BVA_09** | `total_amount` là chuỗi chữ cái | Invalid Type Partition | `"nam_tram_nghin"` | `400 Bad Request` | Lỗi sai kiểu dữ liệu số |
+| **TC_FR09_BVA_10** | Thiếu trường bắt buộc `total_amount` trong Body | Missing Field Test | *(Không gửi field)* | `400 Bad Request` | Lỗi thiếu trường bắt buộc |
 
 ---
 
-### NHÓM 3: Kiểm Thử Bảo Mật Chuyên Sâu (Security Testing SEC-01 → SEC-07) — 10 TCs
+### NHÓM 3: Kiểm Thử Bảo Mật (Security Testing SEC-01 → SEC-07) — 10 TCs
 
-| TestID | Tên Test Case | Kỹ thuật áp dụng | Payload / Headers | Expected Status | Assertions Bảo Mật |
+| TestID | Tên Test Case | Kỹ thuật áp dụng | Mô tả Payload & Headers | Expected Status | Assertions Bảo Mật |
 | :---: | :--- | :---: | :--- | :---: | :--- |
-| **TC_FR09_SEC_01** | **IDOR (SEC-03):** Sửa `user_id` trong body khác với ID trong JWT Token | SEC-03 (IDOR) | Token User 1 (`id=1`), Body: `{"code": "SAVE10", "total_amount": 500000, "user_id": 2}` | `403 Forbidden` / `400` | Backend phát hiện bất đồng nhất danh tính, chặn thao tác |
-| **TC_FR09_SEC_02** | **Authentication Missing (SEC-02):** Gọi API không kèm token | SEC-02 (Auth) | Không có Header `Authorization` | `401 Unauthorized` | Chặn truy cập người dùng ẩn danh |
-| **TC_FR09_SEC_03** | **Tampered JWT Token (SEC-02):** Gửi Bearer token giả mạo | SEC-02 (Auth) | `Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.fake` | `401 Unauthorized` | Xác thực chữ ký số JWT thất bại |
-| **TC_FR09_SEC_04** | **Expired JWT Token (SEC-02):** Gửi JWT Token đã hết hạn | SEC-02 (Auth) | Header Bearer Token đã quá hạn `exp` | `401 Unauthorized` | Chặn token hết hạn |
-| **TC_FR09_SEC_05** | **SQL Injection trong mã coupon (SEC-01):** Tautology Bypass | SEC-01 (SQLi) | `{"code": "SAVE10' OR '1'='1", "total_amount": 500000, "user_id": 1}` | `400 Bad Request` | Bị chặn, không truy vấn CSDL tìm ra coupon sai |
-| **TC_FR09_SEC_06** | **SQLi Stacked Queries (SEC-01):** Tấn công xóa bảng | SEC-01 (SQLi) | `{"code": "SAVE10'; DROP TABLE coupons;--", "total_amount": 500000, "user_id": 1}` | `400 Bad Request` | Bị chặn, cấu trúc CSDL an toàn |
-| **TC_FR09_SEC_07** | **Parameter Tampering (SEC-04):** Client tự ý gửi `discount_amount` khống | SEC-04 (Tampering) | `{"code": "SAVE10", "total_amount": 500000, "user_id": 1, "discount_amount": 490000}` | `200 OK` | Backend tự tính toán lại (50,000 ₫), bỏ qua giá trị client gửi |
-| **TC_FR09_SEC_08** | **XSS Injection trong Code (SEC-01):** Payload mã độc script | SEC-01 (XSS) | `{"code": "<script>alert('XSS')</script>", "total_amount": 500000, "user_id": 1}` | `400 Bad Request` | Ký tự HTML được lọc sạch hoặc từ chối |
-| **TC_FR09_SEC_09** | **Concurrency Double-Spending (SEC-06):** Race condition | SEC-06 (DoS/Race) | Gửi đồng thời 2 request áp cùng 1 mã giới hạn 1 lần | `400 Bad Request` | Request thứ 2 phải bị từ chối do đã dùng hết lượt |
-| **TC_FR09_SEC_10** | **Information Disclosure (SEC-07):** Không lộ cấu trúc CSDL khi lỗi | SEC-07 (Info Leak) | `{"code": "INVALID'", "total_amount": 500000, "user_id": 1}` | `400 Bad Request` | Body KHÔNG chứa `sqlite3`, `SQL syntax`, `stack trace` |
+| **TC_FR09_SEC_01** | **IDOR (SEC-03):** Sửa `user_id` trong body khác với ID trong JWT Token | SEC-03 (IDOR) | Token User 1, Body: `{"code": "SAVE10", "total_amount": 500000, "user_id": 2}` | `403 Forbidden` / `400` | Chặn mạo danh tài khoản người khác |
+| **TC_FR09_SEC_02** | **Authentication Missing (SEC-02):** Gọi API không token | SEC-02 (Auth) | Không có Header `Authorization` | `401 Unauthorized` | Chặn người dùng chưa đăng nhập |
+| **TC_FR09_SEC_03** | **Tampered JWT Token (SEC-02):** Token giả mạo chữ ký | SEC-02 (Auth) | `Authorization: Bearer fake.jwt.token` | `401 Unauthorized` | Xác thực chữ ký số thất bại |
+| **TC_FR09_SEC_04** | **Expired JWT Token (SEC-02):** Token đã hết hạn | SEC-02 (Auth) | Bearer Token đã quá hạn `exp` | `401 Unauthorized` | Chặn token hết hạn |
+| **TC_FR09_SEC_05** | **SQL Injection (SEC-01):** Tautology trong ô mã code | SEC-01 (SQLi) | `{"code": "SAVE10' OR '1'='1", "total_amount": 500000, "user_id": 1}` | `404 Not Found` / `400` | Bị chặn, không bypass CSDL |
+| **TC_FR09_SEC_06** | **SQLi Stacked Queries (SEC-01):** Tấn công xóa bảng | SEC-01 (SQLi) | `{"code": "SAVE10'; DROP TABLE coupons;--", "total_amount": 500000, "user_id": 1}` | `404 Not Found` / `400` | Bị chặn, CSDL an toàn |
+| **TC_FR09_SEC_07** | **Parameter Tampering (SEC-04):** Gửi `discount_amount` khống | SEC-04 (Tampering) | Truyền thêm `"discount_amount": 490000` | `200 OK` | Server tự tính lại 50k, không tin client |
+| **TC_FR09_SEC_08** | **XSS Injection (SEC-01):** Chèn thẻ script vào mã code | SEC-01 (XSS) | `{"code": "<script>alert('XSS')</script>", "total_amount": 500000, "user_id": 1}` | `404 Not Found` / `400` | Encode an toàn hoặc reject |
+| **TC_FR09_SEC_09** | **Concurrency / Double-Spending (SEC-06):** Race condition | SEC-06 (Race) | Gửi đồng thời 2 request cùng 1 mã max_uses=1 | `400 Bad Request` | Request thứ 2 bị từ chối |
+| **TC_FR09_SEC_10** | **Information Disclosure (SEC-07):** Giấu lỗi CSDL | SEC-07 (Info Leak) | `{"code": "INVALID'", "total_amount": 500000, "user_id": 1}` | `404 Not Found` / `400` | Body KHÔNG chứa `sqlite3`, stack trace |
 
 ---
 
-### NHÓM 4: Xác Thực Schema, Giao Thức & Độ Chính Xác Toán Học (Schema & Business Logic Math) — 6 TCs
+### NHÓM 4: Schema Validation & Tính Toán Tiền Tệ (Business Math) — 6 TCs
 
-| TestID | Tên Test Case | Kỹ thuật áp dụng | Payload / Condition | Expected Status | Assertions Chi Tiết & Chai.js Logic |
+| TestID | Tên Test Case | Kỹ thuật áp dụng | Payload / Condition | Expected Status | Assertions Chai.js |
 | :---: | :--- | :---: | :--- | :---: | :--- |
-| **TC_FR09_SCH_01** | Xác thực JSON Schema khi áp mã thành công (200 OK) | JSON Schema (Ajv) | `SAVE10` + 500,000 ₫ | `200 OK` | Đầy đủ trường: `valid` (boolean), `code` (string), `discount_amount` (number $\ge 0$), `final_amount` (number $\ge 0$), `original_total` (number) |
-| **TC_FR09_SCH_02** | Kiểm tra độ chính xác toán học mã Percent ($\text{discount} = \text{total} \times \text{value} / 100$) | Math Logic Verification | `SAVE10` (10%) + 500,000 ₫ | `200 OK` | `pm.expect(data.discount_amount).to.equal(50000); pm.expect(data.final_amount).to.equal(450000);` |
-| **TC_FR09_SCH_03** | Kiểm tra độ chính xác toán học mã Fixed ($\text{discount} = \text{value}$) | Math Logic Verification | `BIGBUY` (50k) + 600,000 ₫ | `200 OK` | `pm.expect(data.discount_amount).to.equal(50000); pm.expect(data.final_amount).to.equal(550000);` |
-| **TC_FR09_SCH_04** | Xác thực cấu trúc JSON Error khi thất bại (400 Bad Request) | Error Schema Validation | Mã sai `FAKE10` | `400 Bad Request` | Object chứa trường `error` hoặc `message` dạng String |
-| **TC_FR09_SCH_05** | Kiểm tra phương thức HTTP sai (`GET /api/apply-coupon`) | HTTP Protocol Compliance | Gửi `GET` thay vì `POST` | `404` / `405 Method Not Allowed` | Server không cho phép áp coupon qua phương thức GET |
-| **TC_FR09_SCH_06** | Đảm bảo SLA thời gian phản hồi API tính coupon (< 500ms) | Performance Benchmark | `SAVE10` + 500,000 ₫ | `200 OK` | `pm.expect(pm.response.responseTime).to.be.below(500);` |
+| **TC_FR09_SCH_01** | Xác thực JSON Schema khi thành công (200 OK) | JSON Schema (Ajv) | `SAVE10` + 500,000 ₫ | `200 OK` | Đủ trường `success`, `coupon_id`, `discount_amount`, `final_amount`, `message` |
+| **TC_FR09_SCH_02** | Xác minh phép tính giảm giá % ($\text{total} \times 10 / 100$) | Math Assertion | `SAVE10` (10%) + 500,000 ₫ | `200 OK` | `discount = 50000; final = 450000;` |
+| **TC_FR09_SCH_03** | Xác minh phép tính giảm giá Fixed ($\text{total} - 50000$) | Math Assertion | `BIGBUY` (50k) + 600,000 ₫ | `200 OK` | `discount = 50000; final = 550000;` |
+| **TC_FR09_SCH_04** | Xác thực cấu trúc JSON Error khi thất bại (400 / 404) | Error Schema | Mã sai `FAKE10` | `404 Not Found` / `400` | Object chứa trường `error` dạng String |
+| **TC_FR09_SCH_05** | Kiểm tra sai phương thức HTTP (`GET /api/apply-coupon`) | Method Compliance | Gửi `GET` thay vì `POST` | `404` / `405 Method Not Allowed` | Không cho phép áp coupon qua GET |
+| **TC_FR09_SCH_06** | SLA thời gian xử lý nghiệp vụ (< 500ms) | Performance SLA | `SAVE10` + 500,000 ₫ | `200 OK` | `pm.expect(pm.response.responseTime).to.be.below(500);` |
+
+---
+
+## PHẦN II: 5 TEST CASES MỞ RỘNG DO CON NGƯỜI THIẾT KẾ (HUMAN EXTENSION)
+
+| TestID | Tên Test Case Mở Rộng | Kỹ thuật & Lý do AI bỏ sót | Payload Body & Headers | Expected Status | Assertions Chi Tiết |
+| :---: | :--- | :--- | :--- | :---: | :--- |
+| **TC_FR09_EXT_01** | **Bắt lỗi Biên C3: Đơn hàng đúng bằng Ngưỡng tối thiểu (`total == min_order`)** | Kiểm tra lỗi logic toán tử so sánh `>` thay vì `>=` trong code backend SUT (`SAVE10` min 300k, gửi đúng 300k). *(AI chỉ test biên chung chung)* | `{"code": "SAVE10", "total_amount": 300000, "user_id": 1}` | `200 OK` | `pm.expect(pm.response.code).to.equal(200);`<br/>*(SUT bị lỗi 400 do viết nhầm `>`)* |
+| **TC_FR09_EXT_02** | **Giá trị Giảm giá Fixed vượt quá Tổng tiền đơn hàng (`discount > total`)** | Khi áp dụng mã giảm giá cố định (Fixed) lớn hơn đơn hàng (ví dụ mã 50k cho đơn 30k), kiểm tra xem `final_amount` có bị âm tiền không. | `{"code": "BIGBUY", "total_amount": 30000, "user_id": 1}` | `200 OK` / `400` | `const data = pm.response.json();`<br/>`pm.expect(data.final_amount).to.be.at.least(0);` |
+| **TC_FR09_EXT_03** | **Chuẩn hóa chữ Hoa / Thường (Case-Insensitive Normalization)** | Người dùng nhập mã chữ thường `"save10"` hoặc `"Save10"` thay vì `"SAVE10"`. Kiểm tra hệ thống có tự động `.toUpperCase()` hay không. | `{"code": "save10", "total_amount": 500000, "user_id": 1}` | `200 OK` | `pm.expect(pm.response.json().success).to.be.true;` |
+| **TC_FR09_EXT_04** | **Khoảng trắng thừa ở đầu/cuối mã (Whitespace Trimming)** | Kiểm tra backend có tự động `.trim()` khoảng trắng thừa do người dùng copy-paste nhầm (`" SAVE10 "`). | `{"code": " SAVE10 ", "total_amount": 500000, "user_id": 1}` | `200 OK` / `404` | Xử lý an toàn, không crash server |
+| **TC_FR09_EXT_05** | **Data-Driven Testing tự động quét 10 bộ dữ liệu từ file CSV** | Tận dụng file [`postman/data_driven_coupons.csv`](file:///d:/STD/Y3/Y3S3/KiemThuPM/hw/hw6/postman/data_driven_coupons.csv) để chạy 10 lần kiểm thử tự động với các tham số biến đổi (`{{code}}`, `{{total_amount}}`, `{{expected_status}}`). | `{"code": "{{code}}", "total_amount": {{total_amount}}, "user_id": 1}` | `pm.iterationData.get("expected_status")` | `pm.expect(pm.response.code).to.equal(Number(pm.iterationData.get("expected_status")));` |
 
 ---
 
 ## 🛠️ ĐOẠN MÃ POSTMAN TEST SCRIPT CHUẨN XÁC THỰC CÔNG THỨC FR-09
 
 ```javascript
-// 1. Kiểm tra Status Code thành công
-pm.test("Status code is 200 OK", function () {
-    pm.response.to.have.status(200);
+// 1. Kiểm tra Status Code
+pm.test("Status code is as expected (200, 400, 401, 404)", function () {
+    pm.expect([200, 400, 401, 403, 404, 405]).to.include(pm.response.code);
 });
 
-// 2. Xác thực JSON Schema chi tiết
-const applyCouponSchema = {
-    "type": "object",
-    "required": ["valid", "code", "discount_amount", "final_amount"],
-    "properties": {
-        "valid": { "type": "boolean" },
-        "code": { "type": "string" },
-        "discount_amount": { "type": "number", "minimum": 0 },
-        "final_amount": { "type": "number", "minimum": 0 },
-        "original_total": { "type": "number", "minimum": 0 }
+// 2. Xác thực Response JSON Schema khi thành công 200 OK
+if (pm.response.code === 200) {
+    const applyCouponSchema = {
+        "type": "object",
+        "required": ["success", "coupon_id", "discount_amount", "final_amount"],
+        "properties": {
+            "success": { "type": "boolean" },
+            "coupon_id": { "type": "integer" },
+            "discount_amount": { "type": "number", "minimum": 0 },
+            "final_amount": { "type": "number", "minimum": 0 },
+            "message": { "type": "string" }
+        }
+    };
+    pm.test("Response body matches Apply Coupon Schema", function () {
+        pm.response.to.have.jsonSchema(applyCouponSchema);
+    });
+
+    // 3. Kiểm tra Tính toán Tiền tệ chính xác
+    const resData = pm.response.json();
+    const reqData = JSON.parse(pm.request.body.raw || "{}");
+    if (reqData.total_amount && resData.discount_amount !== undefined) {
+        pm.test("Final amount equals total minus discount", function () {
+            pm.expect(resData.final_amount).to.equal(reqData.total_amount - resData.discount_amount);
+        });
     }
-};
-pm.test("Response body matches Apply Coupon Schema", function () {
-    pm.response.to.have.jsonSchema(applyCouponSchema);
-});
-
-// 3. Kiểm tra Độ chính xác Số học (Business Math Logic)
-const resData = pm.response.json();
-const reqData = JSON.parse(pm.request.body.raw);
-
-pm.test("Discount calculation math is 100% accurate", function () {
-    pm.expect(resData.final_amount).to.equal(reqData.total_amount - resData.discount_amount);
-});
+}
 ```

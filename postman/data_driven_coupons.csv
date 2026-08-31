@@ -1,4 +1,4 @@
-test_id,description,coupon_code,total_amount,user_id,expected_status,expected_success,expected_discount
+test_id,description,code,total_amount,user_id,expected_status,expected_success,expected_discount
 TC_DD_01,Thoa man tat ca C1-C5 (SAVE10 10%),SAVE10,500000,1,200,true,50000
 TC_DD_02,Thoa man tat ca C1-C5 (BIGBUY fixed 50k),BIGBUY,600000,1,200,true,50000
 TC_DD_03,Thoa man tat ca C1-C5 (VIP100 fixed 100k lan 1),VIP100,400000,1,200,true,100000
