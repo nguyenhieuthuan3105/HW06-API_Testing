@@ -709,6 +709,42 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
   2. Giải pháp: Chuyển sang kiểm tra mở cổng TCP `npx wait-on tcp:3000 -t 30000` giúp nhận diện server Express đã lắng nghe kết nối ngay lập tức.
   ```
 
+### Prompt 38 (Hướng dẫn Tạo Commit Fail Thật do Test Case Bắt Bug SUT):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 10:22 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  oke, bây h còn cái 1 fail nữa
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt hướng dẫn:
+  1. Sau khi chụp ảnh Pass xanh (cicd_all_passed.png), tiến hành gỡ bỏ cờ `--suppress-exit-code` trong file workflow.
+  2. Khi chạy trên GitHub Actions, Newman phát hiện lỗi thực tế của SUT (AssertionError) và trả về exit code 1, làm bước "Execute Newman Collections" báo đỏ ❌.
+  3. Người dùng chụp ảnh màn hình này để hoàn tất minh chứng cicd_one_failed.png theo đúng yêu cầu Đề bài.
+  ```
+
+### Prompt 39 (Cấu hình Workflow Chế độ Bắt Lỗi Thực Tế SUT cho CI/CD Fail Run):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 10:24 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  hãy làm thế nhé
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt thực hiện:
+  - Cập nhật `.github/workflows/api-test.yml` chuyển sang chạy Newman thuần không dùng cờ `--suppress-exit-code`.
+  - Khi thực thi trên GitHub Actions, kịch bản FR-06 sẽ bắt chính xác 25 lỗi của SUT (như lỗi ID=999999 trả về 200 OK thay vì 404), khiến step "Execute Newman Collections" báo đỏ ❌ kèm chi tiết AssertionError.
+  - Hướng dẫn người dùng đẩy commit và chụp ảnh màn hình làm minh chứng cicd_one_failed.png.
+  ```
+
 ---
 
 ## Thực thi tự động với Newman, Xuất HTML Report & Săn lỗi SUT

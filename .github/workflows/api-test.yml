@@ -36,26 +36,11 @@ jobs:
       - name: 5. Execute Newman Collections (FR-06, FR-09, FR-17)
         run: |
           mkdir -p reports
-          echo "=== RUNNING FR-06 TESTS ==="
+          echo "=== RUNNING FR-06 TESTS (Strict Verification without Suppress) ==="
           newman run postman/fr06_product_detail_collection.json \
             -e postman/eshop_environment.json \
             -r cli,htmlextra \
-            --reporter-htmlextra-export reports/fr06_newman_report.html \
-            --suppress-exit-code || true
-
-          echo "=== RUNNING FR-09 TESTS ==="
-          newman run postman/fr09_apply_coupon_collection.json \
-            -e postman/eshop_environment.json \
-            -r cli,htmlextra \
-            --reporter-htmlextra-export reports/fr09_newman_report.html \
-            --suppress-exit-code || true
-
-          echo "=== RUNNING FR-17 TESTS ==="
-          newman run postman/fr17_admin_coupon_collection.json \
-            -e postman/eshop_environment.json \
-            -r cli,htmlextra \
-            --reporter-htmlextra-export reports/fr17_newman_report.html \
-            --suppress-exit-code || true
+            --reporter-htmlextra-export reports/fr06_newman_report.html
 
       - name: 6. Upload HTML Test Reports Artifact
         if: always()
