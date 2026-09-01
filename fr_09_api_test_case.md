@@ -8,7 +8,7 @@
 - **Endpoint:** `POST /api/apply-coupon`
 - **Method:** `POST`
 - **Authentication (Spec C4):** Bearer JWT Token (`Authorization: Bearer <user_token>`)
-- **Headers:** `Content-Type: application/json`, `X-Student-Id: 25127001`
+- **Headers:** `Content-Type: application/json`, `X-Student-Id: 23127125`
 - **Request Body:**
   ```json
   {

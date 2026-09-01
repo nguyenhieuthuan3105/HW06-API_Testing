@@ -1,6 +1,6 @@
 # BÁO CÁO RÀ SOÁT CON NGƯỜI (HUMAN AUDIT) & MỞ RỘNG KIỂM THỬ (EXTENSION)
 ## Dự án: Kiểm Thử Tự Động Bộ API EShop SUT (`http://localhost:3000`)
-### Sinh viên thực hiện: MSSV 25127001
+### Sinh viên thực hiện: MSSV 23127125
 
 ---
 
@@ -176,3 +176,85 @@ Cấu trúc phản hồi thực tế của `GET /api/products/1`:
    - **Mục đích:** Kiểm tra cơ chế tự động `.trim()` khoảng trắng trước khi query CSDL SQLite.
 5. **`TC_FR09_EXT_05` (Data-Driven Testing tự động quét 10 bộ dữ liệu CSV):**
    - **Mục đích:** Tích hợp file CSV [`data_driven_coupons.csv`](postman/data_driven_coupons.csv) để chạy 10 iterations tự động kiểm thử toàn diện các miền giá trị biên và trạng thái coupon.
+
+---
+
+## IV. BẢNG RÀ SOÁT ĐỐI CHIẾU SUT BACKEND — TÍNH NĂNG FR-17 (ADMIN COUPON CRUD)
+
+### 1. Phân tích Hiện trạng SUT Backend (`server.js`) đối với FR-17
+Sau khi rà soát trực tiếp file mã nguồn `server.js` (các route `POST /api/admin/coupons`, `GET /api/coupons`, `DELETE /api/admin/coupons/:id`), phát hiện các vấn đề kỹ thuật lớn:
+- **Lỗ hổng RBAC:** Middleware `authenticateToken` được gọi nhưng không có `requireAdmin` $\rightarrow$ User thường vẫn tạo/xóa coupon thành công (`200 OK` thay vì `403 Forbidden`).
+- **Lỗi Unhandled SQLite Constraint:** Khi tạo mã trùng (`code UNIQUE`), server ném `500 Internal Server Error` kèm raw message `SQLITE_CONSTRAINT` thay vì trả về `400/409`.
+- **Thiếu Input Validation:** Server chấp nhận `discount_value > 100%`, `min_order < 0`, `max_uses <= 0`, `expired_at` không đúng format ngày.
+
+### 2. Bảng Rà Soát Chi Tiết 40 Test Cases FR-17
+
+| TestID | Mục tiêu kiểm thử | Trạng thái AI | Thực tế SUT Backend | Đánh giá & Hành động Hiệu chỉnh của Con người |
+| :---: | :--- | :---: | :--- | :--- |
+| **TC_FR17_DP_01** | Tạo mã percent hợp lệ | `VALID` | SUT tạo thành công | Sinh mã động `Date.now()` trong Pre-request để chống đụng độ UNIQUE |
+| **TC_FR17_DP_02** | Tạo mã fixed hợp lệ | `VALID` | SUT tạo thành công | Sinh mã động `Date.now()` để đảm bảo tính Idempotent |
+| **TC_FR17_DP_03** | Trường `code` rỗng `""` | `INCOMPLETE` | SUT ném lỗi 500 SQLite | Thắt chặt kỳ vọng `400 Bad Request` |
+| **TC_FR17_DP_04** | Mã trùng `SAVE10` | `INCOMPLETE` | SUT ném lỗi 500 SQLite | **Thắt chặt assertion:** Bắt buộc `400/409` (SUT fail -> Bắt Bug 08) |
+| **TC_FR17_DP_05** | Type sai enum (`cashback`) | `INCOMPLETE` | SUT lưu bình thường (200) | Thắt chặt kỳ vọng `400 Bad Request` (Bắt Bug 09) |
+| **TC_FR17_DP_06** | `discount_value = 0` | `INCOMPLETE` | SUT lưu bình thường (200) | Thắt chặt kỳ vọng `400 Bad Request` (Bắt Bug 09) |
+| **TC_FR17_DP_07** | `discount_value < 0` (-10) | `INCOMPLETE` | SUT lưu bình thường (200) | Thắt chặt kỳ vọng `400 Bad Request` (Bắt Bug 09) |
+| **TC_FR17_DP_08** | Percent > 100% (150%) | `INCOMPLETE` | SUT lưu bình thường (200) | Thắt chặt kỳ vọng `400 Bad Request` (Bắt Bug 09) |
+| **TC_FR17_DP_09** | Biên trên 100% (`FREE100`) | `VALID` | SUT tạo thành công | Expected: `200 OK` |
+| **TC_FR17_DP_10** | Biên dưới 1% (`MIN1`) | `VALID` | SUT tạo thành công | Expected: `200 OK` |
+| **TC_FR17_DP_11** | Min order = 0 (`NOMIN`) | `VALID` | SUT tạo thành công | Expected: `200 OK` |
+| **TC_FR17_DP_12** | Min order âm (-50k) | `INCOMPLETE` | SUT lưu bình thường (200) | Thắt chặt kỳ vọng `400 Bad Request` (Bắt Bug 09) |
+| **TC_FR17_DP_13** | Max uses = 0 | `INCOMPLETE` | SUT lưu bình thường (200) | Thắt chặt kỳ vọng `400 Bad Request` (Bắt Bug 09) |
+| **TC_FR17_DP_14** | Max uses âm (-1) | `INCOMPLETE` | SUT lưu bình thường (200) | Thắt chặt kỳ vọng `400 Bad Request` (Bắt Bug 09) |
+| **TC_FR17_DP_15** | Hết hạn quá khứ (2020-01-01) | `VALID` | SUT cho phép tạo | Expected: `200 OK` / `400` |
+| **TC_FR17_DP_16** | Sai format ngày `invalid_date` | `INCOMPLETE` | SUT lưu string thô (200) | Thắt chặt kỳ vọng `400 Bad Request` (Bắt Bug 09) |
+| **TC_FR17_CRUD_01** | [1. Create] Tạo mới `AUTOLIFE` | `VALID` | Lưu ID vào môi trường | Sinh mã động `AUTOLIFE_${Date.now()}` |
+| **TC_FR17_CRUD_02** | [2. Read] Kiểm tra trong List | `VALID` | Tìm thấy mã vừa tạo | Expected: `200 OK` |
+| **TC_FR17_CRUD_03** | [3. Apply] Áp dụng mã trước xóa | `VALID` | Áp mã thành công | Expected: `200 OK` |
+| **TC_FR17_CRUD_04** | [4. Delete] Xóa mã vừa tạo | `VALID` | Xóa thành công | Expected: `200 OK` |
+| **TC_FR17_CRUD_05** | [5. Verify] Kiểm tra biến mất | `VALID` | Không còn trong danh sách | Expected: `200 OK` |
+| **TC_FR17_CRUD_06** | [6. Apply] Áp mã sau khi xóa | `VALID` | Bị từ chối áp dụng | Expected: `404 Not Found` / `400` |
+| **TC_FR17_CRUD_07** | Xóa ID không tồn tại 999999 | `VALID` | SUT xử lý an toàn | Expected: `404 Not Found` / `200` |
+| **TC_FR17_CRUD_08** | Xóa ID dạng chữ `abc` | `INCOMPLETE` | SUT trả về 200 | Thắt chặt kỳ vọng `400 Bad Request` |
+| **TC_FR17_SEC_01** | User thường tạo coupon | `INCOMPLETE` | SUT cho phép tạo (200) | **Thắt chặt:** Bắt buộc `403 Forbidden` (Bắt Bug 07) |
+| **TC_FR17_SEC_02** | User thường xóa coupon | `INCOMPLETE` | SUT cho phép xóa (200) | **Thắt chặt:** Bắt buộc `403 Forbidden` (Bắt Bug 07) |
+| **TC_FR17_SEC_03** | Missing Auth POST | `VALID` | SUT chặn 401 | Expected: `401 Unauthorized` |
+| **TC_FR17_SEC_04** | Missing Auth GET | `VALID` | SUT chặn 401 | Expected: `401 Unauthorized` |
+| **TC_FR17_SEC_05** | Missing Auth DELETE | `VALID` | SUT chặn 401 | Expected: `401 Unauthorized` |
+| **TC_FR17_SEC_06** | Tampered Fake JWT | `VALID` | SUT chặn 401 | Expected: `401 Unauthorized` |
+| **TC_FR17_SEC_07** | Expired JWT Token | `VALID` | SUT chặn 401 | Expected: `401 Unauthorized` |
+| **TC_FR17_SEC_08** | SQLi trong code DROP TABLE | `INCOMPLETE` | SUT ném lỗi 500 | Thắt chặt kỳ vọng `400/200` |
+| **TC_FR17_SEC_09** | SQLi trong path DELETE | `INCOMPLETE` | SUT trả về 200 | Thắt chặt kỳ vọng `400 Bad Request` |
+| **TC_FR17_SEC_10** | Error Disclosure (No SQLite) | `INCOMPLETE` | SUT lộ `SQLITE_CONSTRAINT` | **Thắt chặt assertion:** Bắt buộc không chứa chuỗi CSDL |
+| **TC_FR17_SCH_01** | JSON Schema POST Create | `VALID` | Schema object {message, id} | Schema validation Passed |
+| **TC_FR17_SCH_02** | JSON Schema GET List | `VALID` | Schema array objects | Hỗ trợ `expired_at: [string, null]` |
+| **TC_FR17_SCH_03** | JSON Schema DELETE | `VALID` | Schema object {message} | Schema validation Passed |
+| **TC_FR17_SCH_04** | Sai Method PUT /coupons | `VALID` | SUT trả về 404/405 | Expected: `404` / `405` |
+| **TC_FR17_SCH_05** | Content-Type JSON | `VALID` | Header JSON | Expected: `application/json` |
+| **TC_FR17_SCH_06** | SLA Response Time < 500ms | `VALID` | SUT phản hồi nhanh (< 50ms) | Expected: `responseTime < 500ms` |
+
+---
+
+## V. 5 TEST CASES MỞ RỘNG (HUMAN EXTENSION) — FR-17
+
+1. **`TC_FR17_EXT_01` (Tấn công Leo Quyền RBAC Toàn Diện - Privilege Escalation):**
+   - **Mục đích:** Khai thác lỗ hổng `role` trong Token người dùng thường, gửi lệnh tạo mã giảm giá 99% để kiểm tra cơ chế phân quyền nghiêm ngặt của Backend SUT.
+2. **`TC_FR17_EXT_02` (Rò rỉ Lỗi CSDL khi Vi phạm Ràng buộc Duy nhất - SEC-07):**
+   - **Mục đích:** Gửi mã giảm giá `BIGBUY` trùng lặp để kiểm tra xem Server có che giấu chuỗi lỗi nội bộ `SQLITE_CONSTRAINT` và phản hồi mã lỗi chuẩn `400/409` hay không.
+3. **`TC_FR17_EXT_03` (Thao túng Giá trị Giảm giá Vượt Ngưỡng 200%):**
+   - **Mục đích:** Kiểm tra kiểm thực biên số học, từ chối các mã coupon giảm quá 100%.
+4. **`TC_FR17_EXT_04` (Toàn vẹn Dữ liệu Tham chiếu khi Xóa Coupon Đang Sử Dụng):**
+   - **Mục đích:** Xóa mã `SAVE10` (id=1) đã có bản ghi trong bảng `coupon_usage` để kiểm tra tính toàn vẹn khóa ngoại (Foreign Key Integrity).
+5. **`TC_FR17_EXT_05` (Tạo Hàng loạt Mã Tự Tăng Khóa Chính - Batch Creation):**
+   - **Mục đích:** Kiểm tra cơ chế tự tăng `id` và tính chịu tải khi tạo nhiều coupon liên tiếp.
+
+---
+
+## VI. BẢNG TỔNG HỢP SO SÁNH 1 ĐỐI 1 GIỮA POSTMAN GUI VÀ NEWMAN CLI
+
+| Tính năng / Bộ API | Số Requests | Số Assertions | Kết quả trên Postman GUI | Kết quả trên Newman CLI | Mức độ Đồng bộ | Ghi chú & Tính Bất biến (Idempotency) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :--- |
+| **FR-06: Product Detail** | 44 | 48 | 23 Pass / 25 Fail | 23 Pass / 25 Fail | **100% Khớp Tuyệt Đối** | Không phụ thuộc state ghi đè CSDL |
+| **FR-09: Apply Coupon** | 45 | 51 | 39 Pass / 12 Fail | 39 Pass / 12 Fail | **100% Khớp Tuyệt Đối** | Có Pre-request tự động nạp lượt dùng C5 |
+| **FR-09: Data-Driven CSV** | 45 (x10) | 510 | 388 Pass / 122 Fail | 388 Pass / 122 Fail | **100% Khớp Tuyệt Đối** | Chạy lặp 10 bộ dữ liệu từ `data_driven_coupons.csv` |
+| **FR-17: Admin Coupon CRUD** | 45 | 54 | 35 Pass / 19 Fail | 35 Pass / 19 Fail | **100% Khớp Tuyệt Đối** | Dùng Timestamp động `Date.now()` chống đụng độ UNIQUE |
+

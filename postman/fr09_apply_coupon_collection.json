@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "HW06 - FR-09: Apply Coupon Collection",
-    "_postman_id": "fr09-apply-coupon-collection-25127001",
+    "_postman_id": "fr09-apply-coupon-collection-23127125",
     "description": "Bộ kiểm thử tự động toàn diện 45 Test Cases cho API FR-09: Áp dụng mã giảm giá (POST /api/apply-coupon) thuộc hệ thống EShop SUT với các assertions nghiêm ngặt đối chiếu đặc tả kỹ thuật.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -12,7 +12,7 @@
         "type": "text/javascript",
         "exec": [
           "// Header Chống Gian Lận (Anti-AI-Cheat) bắt buộc",
-          "const studentId = pm.environment.get('student_id') || '25127001';",
+          "const studentId = pm.environment.get('student_id') || '23127125';",
           "pm.request.headers.upsert({ key: 'X-Student-Id', value: studentId });",
           "// Tự động gắn Bearer Token nếu request không ghi đè",
           "const userToken = pm.environment.get('user_token');",
@@ -51,13 +51,25 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -84,13 +96,25 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 600000,\n  \"user_id\": 1\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -117,13 +141,25 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"VIP100\",\n  \"total_amount\": 400000,\n  \"user_id\": 1\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -144,13 +180,25 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"INVALID_CODE_999\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -171,13 +219,25 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"INACTIVE_COUPON\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -199,13 +259,25 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"EXPIRED\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -226,13 +298,25 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 200000,\n  \"user_id\": 1\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -253,14 +337,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "", "type": "text" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -306,13 +406,25 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 500000,\n  \"user_id\": 2\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -333,13 +445,25 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"FAKE10\",\n  \"total_amount\": 50000,\n  \"user_id\": 1\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -360,13 +484,25 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"EXPIRED\",\n  \"total_amount\": 50000,\n  \"user_id\": 1\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -387,14 +523,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "", "type": "text" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 100000,\n  \"user_id\": 1\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -416,13 +568,25 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"VIP100\",\n  \"total_amount\": 350000,\n  \"user_id\": 1\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -444,13 +608,25 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"VIP100\",\n  \"total_amount\": 350000,\n  \"user_id\": 1\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         }
       ]
@@ -475,9 +651,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 300001,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 300001,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -497,9 +690,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 299999,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 299999,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -519,9 +729,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 1000000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 1000000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -541,9 +768,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 0,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 0,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -563,9 +807,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": -1,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": -1,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -585,9 +846,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": -500000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": -500000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -607,9 +885,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 999999999,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 999999999,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -629,9 +924,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 550000.50,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 550000.50,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -651,9 +963,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": \"nam_tram_nghin\",\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": \"nam_tram_nghin\",\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -673,9 +1002,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE10\",\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE10\",\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         }
       ]
@@ -700,9 +1046,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 500000,\n  \"user_id\": 2\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 500000,\n  \"user_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -723,11 +1086,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "", "type": "text" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "",
+                "type": "text"
+              }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -748,11 +1130,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer fake.jwt.tampered.token", "type": "text" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer fake.jwt.tampered.token",
+                "type": "text"
+              }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -773,11 +1174,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZXhwIjoxNTE0Nzc0NDAwfQ.expired", "type": "text" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZXhwIjoxNTE0Nzc0NDAwfQ.expired",
+                "type": "text"
+              }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -797,9 +1217,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE10' OR '1'='1\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE10' OR '1'='1\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -819,9 +1256,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE10'; DROP TABLE coupons;--\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE10'; DROP TABLE coupons;--\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -842,9 +1296,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 600000,\n  \"user_id\": 1,\n  \"discount_amount\": 490000,\n  \"final_amount\": 1000\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 600000,\n  \"user_id\": 1,\n  \"discount_amount\": 490000,\n  \"final_amount\": 1000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -864,9 +1335,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"<script>alert('XSS')</script>\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"<script>alert('XSS')</script>\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -886,9 +1374,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 600000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 600000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -910,9 +1415,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"INVALID'\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"INVALID'\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         }
       ]
@@ -951,9 +1473,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 600000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 600000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -978,9 +1517,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -1003,9 +1559,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 600000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 600000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -1028,9 +1601,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"FAKE10\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"FAKE10\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -1051,7 +1641,16 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -1071,9 +1670,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 600000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 600000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         }
       ]
@@ -1098,9 +1714,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 300000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE10\",\n  \"total_amount\": 300000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -1126,9 +1759,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 30000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"BIGBUY\",\n  \"total_amount\": 30000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -1148,9 +1798,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \"save10\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"save10\",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -1170,9 +1837,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"code\": \" SAVE10 \",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}" },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \" SAVE10 \",\n  \"total_amount\": 500000,\n  \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         },
         {
@@ -1197,12 +1881,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"{{code}}\",\n  \"total_amount\": {{total_amount}},\n  \"user_id\": {{user_id}}\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/apply-coupon", "host": ["{{baseUrl}}"], "path": ["api", "apply-coupon"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/apply-coupon",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apply-coupon"
+              ]
+            }
           }
         }
       ]

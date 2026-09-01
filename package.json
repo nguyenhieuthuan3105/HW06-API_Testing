@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "newman-reporter-htmlextra": "^1.23.1"
+    "newman-reporter-htmlextra": "^1.23.1",
+    "xlsx": "^0.18.5"
   }
 }

@@ -22,7 +22,7 @@ Tuy nhiên, khi gửi request `GET /api/products/999999` hoặc truy vấn lại
 2. Gửi request HTTP GET với cURL hoặc Postman:
    ```bash
    curl -X GET "http://localhost:3000/api/products/999999" \
-        -H "X-Student-Id: 25127001"
+        -H "X-Student-Id: 23127125"
    ```
 3. Quan sát HTTP Status Code và Response Body trả về.
 
@@ -71,12 +71,12 @@ Thực tế, backend SUT không hề validate tham số này, chấp nhận mọ
 1. Gửi request với tham số chữ cái hoặc payload SQL Injection:
    ```bash
    curl -X GET "http://localhost:3000/api/products/1%20OR%201=1" \
-        -H "X-Student-Id: 25127001"
+        -H "X-Student-Id: 23127125"
    ```
 2. Gửi request với ID âm hoặc số 0:
    ```bash
    curl -X GET "http://localhost:3000/api/products/-1" \
-        -H "X-Student-Id: 25127001"
+        -H "X-Student-Id: 23127125"
    ```
 
 ### Kết quả Thực tế (Actual Result):
@@ -123,7 +123,7 @@ Khi kiểm thử sản phẩm `id = 2`, assertion kiểm tra kiểu số bị FA
 1. Gửi request lấy thông tin sản phẩm 2:
    ```bash
    curl -X GET "http://localhost:3000/api/products/2" \
-        -H "X-Student-Id: 25127001"
+        -H "X-Student-Id: 23127125"
    ```
 2. Kiểm tra `typeof response.price` trong JSON phản hồi.
 
@@ -177,7 +177,7 @@ Thực tế trong mã nguồn backend (`server.js`), route `POST /api/apply-coup
    ```bash
    curl -X POST "http://localhost:3000/api/apply-coupon" \
         -H "Content-Type: application/json" \
-        -H "X-Student-Id: 25127001" \
+        -H "X-Student-Id: 23127125" \
         -d '{"code": "SAVE10", "total_amount": 500000, "user_id": 1}'
    ```
 2. Quan sát phản hồi của server.
@@ -226,7 +226,7 @@ Tuy nhiên, backend tính ra `discount_amount = -4,500,000 ₫` và `final_amoun
    ```bash
    curl -X POST "http://localhost:3000/api/apply-coupon" \
         -H "Content-Type: application/json" \
-        -H "X-Student-Id: 25127001" \
+        -H "X-Student-Id: 23127125" \
         -d '{"code": "SAVE10", "total_amount": 500000, "user_id": 1}'
    ```
 2. Kiểm tra giá trị `discount_amount` và `final_amount` trong phản hồi.
@@ -289,7 +289,7 @@ Tuy nhiên, backend SUT lại từ chối với mã **`400 Bad Request`** và b�
    ```bash
    curl -X POST "http://localhost:3000/api/apply-coupon" \
         -H "Content-Type: application/json" \
-        -H "X-Student-Id: 25127001" \
+        -H "X-Student-Id: 23127125" \
         -d '{"code": "SAVE10", "total_amount": 300000, "user_id": 1}'
    ```
 2. Quan sát HTTP status và thông báo trả về.
@@ -311,3 +311,170 @@ Tuy nhiên, backend SUT lại từ chối với mã **`400 Bad Request`** và b�
   ```javascript
   if (total_amount >= coupon.min_order_amount) { ... }
   ```
+
+---
+
+## 7. BUG #07: [FR-17][SEC-02] Lỗ hổng Leo Quyền Phân Quyền (RBAC Privilege Escalation) — Tài khoản User thường thực hiện được toàn bộ quyền Quản trị Tạo & Xóa Mã giảm giá
+
+- **Mã Bug:** `BUG_FR17_01`
+- **Mã chức năng:** FR-17: Quản lý mã giảm giá Admin (`POST /api/admin/coupons`, `DELETE /api/admin/coupons/:id`)
+- **Mức độ nghiêm trọng (Severity):** **Critical / Security (Broken Access Control - OWASP A01)**
+- **Các Test Cases phát hiện lỗi:** `TC_FR17_SEC_01`, `TC_FR17_SEC_02`, `TC_FR17_EXT_01`
+- **Báo cáo Newman minh chứng:** File [`reports/fr17_newman_report.html`](../reports/fr17_newman_report.html)
+- **Link GitHub Issue:** `https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/7`
+
+### Mô tả chi tiết:
+Theo đặc tả phân quyền RBAC (Role-Based Access Control) của hệ thống:
+- Các endpoint chứa tiền tố `/api/admin/*` là tài nguyên quản trị tối cao, bắt buộc phải có Token của tài khoản có `role: "admin"`.
+- Khi người dùng thông thường (`role: "user"`) gửi request tới các endpoint này, Server bắt buộc phải từ chối với mã **`403 Forbidden`** kèm thông báo lỗi *"Admin privileges required"*.
+
+Thực tế, backend SUT chỉ kiểm tra xem Token có hợp lệ hay không mà **hoàn toàn không kiểm tra vai trò (Role) của người dùng**. Kẻ tấn công mang token User thường có thể tùy ý tạo mã giảm giá 100% (`SUMMER20`) hoặc xóa sạch toàn bộ mã giảm giá của hệ thống với mã phản hồi **`200 OK`**.
+
+### Các bước tái hiện (Steps to Reproduce):
+1. Đăng nhập tài khoản User thường (`test@eshop.com` / `Test1234!`) để lấy JWT Token (`user_token`).
+2. Gửi request tạo mã giảm giá Admin bằng cURL:
+   ```bash
+   curl -X POST "http://localhost:3000/api/admin/coupons" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer <user_token>" \
+        -H "X-Student-Id: 23127125" \
+        -d '{"code": "HACK99", "type": "percent", "discount_value": 99, "min_order_amount": 0}'
+   ```
+3. Quan sát phản hồi của server.
+
+### Kết quả Thực tế (Actual Result):
+- **HTTP Status Code:** `200 OK`
+- **Response Body:** `{"message": "Coupon created", "id": 6}` *(Tạo mã thành công bằng quyền User thường!)*
+
+### Kết quả Mong đợi (Expected Result):
+- **HTTP Status Code:** `403 Forbidden`
+- **Response Body:** `{"error": "Access denied: Admin role required", "status": 403}`
+
+### Phân tích nguyên nhân gốc rễ (Root Cause) & Đề xuất khắc phục (Fix):
+- **Nguyên nhân:** Trong `server.js`, các route admin chỉ sử dụng middleware `authenticateToken` chung mà không sử dụng middleware kiểm tra vai trò `requireAdmin`:
+  ```javascript
+  // Hiện tại trong server.js:
+  app.post('/api/admin/coupons', authenticateToken, (req, res) => { ... });
+  app.delete('/api/admin/coupons/:id', authenticateToken, (req, res) => { ... });
+  ```
+- **Cách khắc phục:**
+  ```javascript
+  const requireAdmin = (req, res, next) => {
+      if (req.user && req.user.role === 'admin') {
+          next();
+      } else {
+          return res.status(403).json({ error: "Access denied: Admin role required", status: 403 });
+      }
+  };
+  app.post('/api/admin/coupons', authenticateToken, requireAdmin, (req, res) => { ... });
+  app.delete('/api/admin/coupons/:id', authenticateToken, requireAdmin, (req, res) => { ... });
+  ```
+
+---
+
+## 8. BUG #08: [FR-17][SEC-07] Lỗi Máy chủ `500 Internal Server Error` và Rò rỉ Chi tiết CSDL SQLite khi Tạo Mã Trùng Lặp (Information Disclosure)
+
+- **Mã Bug:** `BUG_FR17_02`
+- **Mã chức năng:** FR-17: Quản lý mã giảm giá Admin (`POST /api/admin/coupons`)
+- **Mức độ nghiêm trọng (Severity):** **High / Security & Robustness (SEC-07 - Information Leakage)**
+- **Các Test Cases phát hiện lỗi:** `TC_FR17_DP_04`, `TC_FR17_SEC_10`, `TC_FR17_EXT_02`
+- **Báo cáo Newman minh chứng:** File [`reports/fr17_newman_report.html`](../reports/fr17_newman_report.html)
+- **Link GitHub Issue:** `https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/8`
+
+### Mô tả chi tiết:
+Cột `code` trong bảng `coupons` có ràng buộc duy nhất (`UNIQUE`). Khi Admin tạo một mã giảm giá đã tồn tại trong CSDL (ví dụ `SAVE10` hoặc `BIGBUY`), Server cần bắt lỗi nghiệp vụ này và phản hồi mã trạng thái Client Error phù hợp (**`400 Bad Request`** hoặc **`409 Conflict`**) kèm thông báo lỗi thân thiện.
+Thực tế, backend SUT ném ra lỗi ngoại lệ chưa được xử lý, trả về mã **`500 Internal Server Error`** và làm rò rỉ trực tiếp chi tiết truy vấn nội bộ SQLite ra client:
+`{"error": "SQLITE_CONSTRAINT: UNIQUE constraint failed: coupons.code"}`.
+
+### Các bước tái hiện (Steps to Reproduce):
+1. Gửi request tạo mã giảm giá với mã đã tồn tại (`SAVE10`):
+   ```bash
+   curl -X POST "http://localhost:3000/api/admin/coupons" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer <admin_token>" \
+        -H "X-Student-Id: 23127125" \
+        -d '{"code": "SAVE10", "type": "percent", "discount_value": 10, "min_order_amount": 100000}'
+   ```
+2. Quan sát phản hồi của server.
+
+### Kết quả Thực tế (Actual Result):
+- **HTTP Status Code:** `500 Internal Server Error`
+- **Response Body:**
+  ```json
+  {
+    "error": "SQLITE_CONSTRAINT: UNIQUE constraint failed: coupons.code"
+  }
+  ```
+
+### Kết quả Mong đợi (Expected Result):
+- **HTTP Status Code:** `400 Bad Request` hoặc `409 Conflict`
+- **Response Body:**
+  ```json
+  {
+    "error": "Coupon code already exists",
+    "status": 409
+  }
+  ```
+
+### Phân tích nguyên nhân gốc rễ (Root Cause) & Đề xuất khắc phục (Fix):
+- **Nguyên nhân:** Trong callback `db.run(sql, params, function(err) { ... })`, controller xử lý lỗi thô sơ bằng `if (err) return res.status(500).json({ error: err.message });`.
+- **Cách khắc phục:**
+  ```javascript
+  if (err) {
+      if (err.message.includes('UNIQUE constraint failed')) {
+          return res.status(409).json({ error: "Coupon code already exists", status: 409 });
+      }
+      return res.status(500).json({ error: "Internal Server Error" });
+  }
+  ```
+
+---
+
+## 9. BUG #09: [FR-17] Thiếu Toàn bộ Tầng Input Validation khi Tạo Mã — Cho phép Giá trị Giảm > 100%, Ngưỡng Đơn Âm, Lượt Dùng $\le 0$ và Sai Format Ngày
+
+- **Mã Bug:** `BUG_FR17_03`
+- **Mã chức năng:** FR-17: Quản lý mã giảm giá Admin (`POST /api/admin/coupons`, `DELETE /api/admin/coupons/:id`)
+- **Mức độ nghiêm trọng (Severity):** **Medium / Data Integrity & Input Validation**
+- **Các Test Cases phát hiện lỗi:** `TC_FR17_DP_05`, `TC_FR17_DP_06`, `TC_FR17_DP_07`, `TC_FR17_DP_08`, `TC_FR17_DP_12`, `TC_FR17_DP_13`, `TC_FR17_DP_14`, `TC_FR17_DP_16`, `TC_FR17_CRUD_08`, `TC_FR17_EXT_03`
+- **Báo cáo Newman minh chứng:** File [`reports/fr17_newman_report.html`](../reports/fr17_newman_report.html)
+- **Link GitHub Issue:** `https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/9`
+
+### Mô tả chi tiết:
+Đặc tả yêu cầu hệ thống phải kiểm tra tính hợp lệ của dữ liệu đầu vào trước khi lưu vào CSDL:
+1. `type`: Chỉ chấp nhận `"percent"` hoặc `"fixed"`.
+2. `discount_value`: Phải lớn hơn 0; nếu `type = "percent"` thì không được vượt quá `100%`.
+3. `min_order_amount`: Phải là số nguyên $\ge 0$.
+4. `max_uses_per_user`: Phải là số nguyên $\ge 1$.
+5. `expired_at`: Phải là chuỗi ngày hợp lệ ISO 8601.
+
+Thực tế, backend SUT không kiểm tra bất kỳ trường nào trong số trên, lưu trực tiếp dữ liệu rác (ví dụ giảm giá 200%, số tiền tối thiểu -50,000 ₫, chuỗi ngày `"invalid_date"`) vào CSDL và trả về **`200 OK`**.
+
+### Các bước tái hiện (Steps to Reproduce):
+1. Gửi request tạo mã giảm giá với `discount_value = 200%` và `min_order_amount = -50000`:
+   ```bash
+   curl -X POST "http://localhost:3000/api/admin/coupons" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer <admin_token>" \
+        -H "X-Student-Id: 23127125" \
+        -d '{"code": "OVER200", "type": "percent", "discount_value": 200, "min_order_amount": -50000, "expired_at": "invalid_date", "max_uses_per_user": -5}'
+   ```
+2. Quan sát phản hồi của server.
+
+### Kết quả Thực tế (Actual Result):
+- **HTTP Status Code:** `200 OK`
+- **Response Body:** `{"message": "Coupon created", "id": 7}`
+
+### Kết quả Mong đợi (Expected Result):
+- **HTTP Status Code:** `400 Bad Request`
+- **Response Body:**
+  ```json
+  {
+    "status": 400,
+    "error": "Validation error: discount_value for percent type must be between 1 and 100, min_order_amount must be >= 0, max_uses_per_user must be >= 1, and expired_at must be a valid date."
+  }
+  ```
+
+### Phân tích nguyên nhân gốc rễ (Root Cause) & Đề xuất khắc phục (Fix):
+- **Nguyên nhân:** Thiếu tầng kiểm thực dữ liệu (Joi / express-validator / Zod) ở đầu route `POST /api/admin/coupons`.
+- **Cách khắc phục:** Thêm kiểm tra validation trước khi thực hiện câu lệnh SQL `INSERT INTO coupons`.
+

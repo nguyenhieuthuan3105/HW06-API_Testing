@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 AI-Driven API Test Generator for EShop SUT (HW06)
-Author: Student 25127001
+Author: Student 23127125
 Features Covered: FR-06 (Product Detail), FR-09 (Apply Coupon), FR-17 (Admin Coupon CRUD)
 """
 
@@ -9,7 +9,7 @@ import json
 import os
 import sys
 
-def create_postman_request_item(name, method, path, headers_dict, body_data, expected_status, assertions_list=None, student_id="25127001"):
+def create_postman_request_item(name, method, path, headers_dict, body_data, expected_status, assertions_list=None, student_id="23127125"):
     """Tạo một Postman Request Item hoàn chỉnh theo chuẩn schema v2.1.0"""
     headers = [{"key": k, "value": v} for k, v in headers_dict.items()]
     # Bắt buộc đính kèm header chống gian lận

@@ -465,7 +465,7 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
      - 04_Schema_Validation_and_Protocols (6 TCs).
      - 05_Human_Extension_Test_Cases (5 TCs).
   2. Tích hợp Script nâng cao:
-     - Collection Pre-request: Tự động gắn header X-Student-Id: 25127001.
+     - Collection Pre-request: Tự động gắn header X-Student-Id: 23127125.
      - TC_FR06_ST_07: Tự động gửi pm.sendRequest() POST tạo SP trong Pre-request và DELETE trong Post-response.
      - TC_FR06_EXT_05: Tự động lấy ETag trong Pre-request và gửi header If-None-Match.
      - 100% test cases đều có đoạn mã Chai.js assertions, response time và schema validation.
@@ -498,6 +498,177 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
   4. Thực thi Newman tự động tạo ra 2 báo cáo HTML trực quan:
      - reports/fr09_newman_report.html: Chạy 46 requests / 51 assertions (Đạt 100% Passed).
      - reports/fr09_data_driven_report.html: Chạy 10 iterations với 460 requests / 510 assertions trong 39.6s (Đạt 508 Passed, 2 Failed bắt trúng lỗi biên C3 của SUT).
+  ```
+
+### Prompt 26 (Xây dựng Collection FR-17 & Thực thi Newman):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 08:25 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  hãy thực hiện nhé, cần thêm các trường gì thì cứ setup thêm vào file environment
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung thực hiện:
+  1. Xây dựng Postman Collection hoàn chỉnh postman/fr17_admin_coupon_collection.json gồm 45 requests chia thành 5 sub-folders.
+  2. Thực thi Newman tự động tạo file báo cáo HTML: reports/fr17_newman_report.html.
+  ```
+
+### Prompt 27 (Xử lý Ô nhiễm Dữ liệu & Đảm bảo Tính Bất biến Idempotency cho FR-17):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 08:32 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  @[HW06 - FR17_Admin_Coupon_CRUD_Collection.postman_test_run.json] toi thu chay bang run tren postman, va ket qua ra nhu sau, hinh nhu co su khac biet ve so luong fail test?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung phân tích & giải pháp:
+  1. Nguyên nhân kỹ thuật: Đụng độ UNIQUE constraint cột code SQLite giữa các lần chạy khiến các ca tạo mã hợp lệ bị trả về lỗi 500 (Fail tăng từ 18 lên 31).
+  2. Giải pháp: Tích hợp Script Pre-request tự động sinh mã code động kèm Timestamp (`SUMMER20_${Date.now()}`) cho toàn bộ request tạo mới, đảm bảo 100% Idempotent.
+  ```
+
+### Prompt 28 (Kiểm tra Đồng bộ Format 3 Collections, Headers & Chuẩn hóa MSSV 23127125):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 08:41 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  kiểm tra tính đồng bộ về mặt format giữa 3 file collection nhé, header chuẩn chưa, tên đúng form chưa..., kiểm tra mssv có đúng là 23127125 trong các collection và html chưa, environment nữa...
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung rà soát & đồng bộ toàn diện:
+  1. Chuẩn hóa MSSV: Đã quét và đồng bộ 100% MSSV về đúng giá trị `23127125` trên toàn bộ biến môi trường, collection scripts, bug report, test cases và script python.
+  2. Đồng bộ Cấu trúc & Naming giữa 3 Collections (5 sub-folders, header X-Student-Id: 23127125).
+  3. Thực thi lại Newman tái tạo 4 file báo cáo HTML phản ánh chính xác header MSSV 23127125.
+  ```
+
+### Prompt 29 (Hướng dẫn Thực thi Toàn diện trên Postman GUI & Data-Driven Runner):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 08:47 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  cho tôi cách để chạy trên gui cho toàn bộ các trường hợp file report mà bạn đã tạo?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung hướng dẫn thao tác Postman GUI cho 4 trường hợp (FR-06, FR-09 Single, FR-09 CSV Data-Driven 10 iterations, FR-17) và hướng dẫn mở Postman Console (Ctrl+Alt+C) chụp ảnh header X-Student-Id: 23127125.
+  ```
+
+### Prompt 30 (Giải thích Tùy chọn "Save Responses" trong Postman GUI mới):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 08:51 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  [Hình ảnh giao diện Postman Runner] chỗ nào là save response vậy?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt giải thích: Trên các phiên bản Postman mới, tùy chọn "Save responses" đã được đổi tên thành "Persist responses for a session" trong Advanced settings và đã được tích chọn sẵn mặc định.
+  ```
+
+### Prompt 31 (Đối chiếu 1-1 Kết quả Chạy Postman GUI vs Newman Reports & Đồng bộ Định dạng FR-17):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 09:04 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  @[HW06 - FR-06- Product Detail View Collection.postman_test_run.json] @[HW06 - FR-09- Apply Coupon Collection.postman_test_run.json] @[HW06 - FR-09- Apply Coupon Collection_data_csv_file.postman_test_run] @[HW06 - FR-17- Admin Coupon CRUD Collection.postman_test_run.json] tôi vừa thử chạy tay toàn bộ các test trên gui của postman, hãy kiểm tra 1 đối 1 với từng fr trong reports/ và postmans/ xem kết quả có khớp không? Nếu không khớp thì cho tôi biết tại sao lại như vậy...
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung thực hiện:
+  1. Đối chiếu 1-1: Khớp 100% giữa 4 file Postman GUI và 4 file Newman HTML Reports.
+  2. Bổ sung 3 bugs của FR-17 vào bugs/bug_report.md (BUG_FR17_01 RBAC, BUG_FR17_02 SQLite Leak, BUG_FR17_03 Input Validation).
+  3. Cập nhật help/human_fix.md (Mục IV, V, VI).
+  4. Đồng bộ 100% format fr_17_api_test_case.md khớp hoàn toàn với fr_06 và fr_09.
+  ```
+
+### Prompt 32 (Giải thích Vai trò .github/workflows và Xử lý Lỗi CI/CD Email):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 09:17 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  trong .github làm gì vậy? đề có yêu cầu phải làm không @[help/2026.HW06.API Testing_En.pdf] , vì tôi thấy tôi cứ push lên là có mail báo lỗi về
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung phân tích:
+  1. Yêu cầu đề bài: Đề bài (Trang 5 & Trang 7 file PDF) BẮT BUỘC có mục "Integrate into CI/CD" - Chạy Newman trên GitHub Actions và yêu cầu nộp 2 commit minh chứng (1 Pass, 1 Fail).
+  2. Nguyên nhân gửi mail báo lỗi: Workflow cũ cố gắng chạy `npm start` trên repo chỉ chứa file test mà không có backend SUT `server.js`.
+  3. Giải pháp khắc phục: Cập nhật workflow tự động clone repo backend SUT `https://github.com/ttbhanh/eshop-sut.git`, khởi động SUT tại cổng 3000 và chạy Newman cho cả 3 collections (kèm upload artifacts HTML).
+  ```
+
+### Prompt 33 (Cung cấp Câu Lệnh Chạy Newman CLI & Hướng Dẫn Chụp Ảnh Minh Chứng):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 09:56 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  [Hình ảnh evidences/README.md] cho toi lenh de chay newman va chup hinh nhe
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung hướng dẫn:
+  1. Cung cấp câu lệnh Newman CLI hiển thị bảng tổng kết rõ ràng URL http://localhost:3000 và bảng thống kê số lượng requests, assertions, pass/fail:
+     `npx newman run postman/fr06_product_detail_collection.json -e postman/eshop_environment.json`
+  2. Hướng dẫn chụp toàn bộ màn hình Terminal chứa bảng Summary và lưu vào evidences/newman_localhost_execution.png.
+  ```
+
+### Prompt 34 (Hướng dẫn Chụp Ảnh Minh Chứng CI/CD GitHub Actions Đỏ và Xanh):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 10:03 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  [Hình ảnh giao diện GitHub Actions báo lỗi đỏ] 2 cai kia chup kieu gi vay?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung hướng dẫn:
+  1. Ảnh 4 (cicd_one_failed.png): Chụp ngay màn hình hiện tại trên trình duyệt GitHub Actions đang có biểu tượng dấu chéo đỏ ❌.
+  2. Ảnh 3 (cicd_all_passed.png): Thực hiện `git add .`, `git commit` và `git push` cấu hình workflow mới đã fix, sau đó vào tab Actions trên GitHub đợi pipeline chạy xong báo tích xanh ✅ rồi chụp màn hình.
+  ```
+
+### Prompt 35 (Phân tích Lỗi Setup Node vs Lỗi Test Case Thật trên CI/CD):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 10:06 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  nhung phan fail nay la do khong setup duoc node moi truong, chu khong phai la do test case?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung phân tích & giải pháp chuẩn:
+  1. Xác nhận: Người dùng quan sát rất chính xác. Lỗi đỏ trước đó là lỗi hạ tầng CI do khai báo `cache: 'npm'` khi root repo chưa có package-lock.json.
+  2. Hướng dẫn quy trình tạo 2 commit chuẩn theo đúng tiêu chí Đề bài (1 Pass xanh do workflow hoàn chỉnh, 1 Fail đỏ do Newman assertion bắt trúng bug SUT mà không dùng cờ --suppress-exit-code).
   ```
 
 ---

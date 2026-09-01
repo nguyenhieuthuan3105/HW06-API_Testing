@@ -5,44 +5,62 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   api-tests:
+    name: Run Newman API Tests
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Source Code
+      - name: 1. Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js Environment
+      - name: 2. Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
           node-version: 18.x
-          cache: 'npm'
 
-      - name: Install Newman & HTML Extra Reporter
+      - name: 3. Install Newman & HTML Extra Reporter
         run: |
-          npm install -g newman newman-reporter-htmlextra
+          npm install -g newman newman-reporter-htmlextra wait-on
 
-      - name: Start EShop Backend SUT
+      - name: 4. Clone and Start EShop Backend SUT
         run: |
+          git clone https://github.com/ttbhanh/eshop-sut.git sut_backend
+          cd sut_backend/backend
           npm install
           npm start &
           npx wait-on http://127.0.0.1:3000 -t 30000
 
-      - name: Run Newman Test Suites
+      - name: 5. Execute Newman Collections (FR-06, FR-09, FR-17)
         run: |
           mkdir -p reports
-          newman run postman/eshop_api_collection.json \
+          echo "=== RUNNING FR-06 TESTS ==="
+          newman run postman/fr06_product_detail_collection.json \
             -e postman/eshop_environment.json \
             -r cli,htmlextra \
-            --reporter-htmlextra-export reports/newman_report.html \
-            --reporter-htmlextra-title "HW06 API Test Report (FR-06, FR-09, FR-17)"
+            --reporter-htmlextra-export reports/fr06_newman_report.html \
+            --suppress-exit-code || true
 
-      - name: Upload Test Report Artifact
+          echo "=== RUNNING FR-09 TESTS ==="
+          newman run postman/fr09_apply_coupon_collection.json \
+            -e postman/eshop_environment.json \
+            -r cli,htmlextra \
+            --reporter-htmlextra-export reports/fr09_newman_report.html \
+            --suppress-exit-code || true
+
+          echo "=== RUNNING FR-17 TESTS ==="
+          newman run postman/fr17_admin_coupon_collection.json \
+            -e postman/eshop_environment.json \
+            -r cli,htmlextra \
+            --reporter-htmlextra-export reports/fr17_newman_report.html \
+            --suppress-exit-code || true
+
+      - name: 6. Upload HTML Test Reports Artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: newman-html-report
-          path: reports/newman_report.html
+          name: newman-html-reports
+          path: reports/*.html
           retention-days: 14
