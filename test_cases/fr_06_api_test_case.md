@@ -4,7 +4,7 @@
 
 ---
 
-### 📌 THÔNG TIN ĐẶC TẢ KỸ THUẬT
+### THÔNG TIN ĐẶC TẢ KỸ THUẬT
 - **Endpoint:** `GET /api/products/:id`
 - **Method:** `GET`
 - **Authentication:** Public (Không yêu cầu Bearer Token)
@@ -101,7 +101,7 @@
 
 ---
 
-## 🛠️ ĐOẠN MÃ POSTMAN TEST SCRIPT CHUẨN HÓA CHO FR-06
+## ĐOẠN MÃ POSTMAN TEST SCRIPT CHUẨN HÓA CHO FR-06
 
 ```javascript
 // 1. Kiểm tra Status Code linh hoạt (200, 304, 400, 404 tùy case)

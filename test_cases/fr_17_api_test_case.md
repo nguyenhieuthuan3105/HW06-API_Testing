@@ -4,7 +4,7 @@
 
 ---
 
-### 📌 THÔNG TIN ĐẶC TẢ KỸ THUẬT & SUT REALITY
+### THÔNG TIN ĐẶC TẢ KỸ THUẬT & SUT REALITY
 - **Endpoints:**
   1. `POST /api/admin/coupons`: Tạo mã giảm giá mới (Yêu cầu quyền Admin).
   2. `GET /api/coupons`: Lấy danh sách toàn bộ mã giảm giá trong hệ thống.
@@ -144,7 +144,7 @@
 
 ---
 
-## 🛠️ ĐOẠN MÃ POSTMAN TEST SCRIPT XÁC THỰC SCHEMA MẪU CHO FR-17
+## ĐOẠN MÃ POSTMAN TEST SCRIPT XÁC THỰC SCHEMA MẪU CHO FR-17
 
 ```javascript
 // 1. Kiểm tra Status Code

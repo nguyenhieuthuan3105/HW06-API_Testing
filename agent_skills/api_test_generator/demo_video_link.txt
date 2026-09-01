@@ -1,0 +1,5 @@
+# LINK VIDEO DEMO AGENT SKILL (YOUTUBE UNLISTED)
+# Sinh viên: Nguyễn Hiếu Thuận - MSSV: 23127125
+
+YouTube URL: https://youtu.be/placeholder-hw06-demo
+(Sau khi quay video xong, bạn chỉ cần thay đường link YouTube Unlisted thực tế của bạn vào đây và trong README.md)

@@ -12,7 +12,7 @@
 
 ---
 
-## 📑 MỤC LỤC BÁO CÁO
+## MỤC LỤC BÁO CÁO
 1. [I. TỔNG QUAN & BẢNG TỰ ĐÁNH GIÁ ĐIỂM SỐ](#i-tổng-quan--bảng-tự-đánh-giá-điểm-số)
 2. [II. LỰA CHỌN 3 APIS THUỘC 3 POOLS KHÁC NHAU](#ii-lựa-chọn-3-apis-thuộc-3-pools-khác-nhau)
 3. [III. CHI TIẾT THIẾT KẾ KỊCH BẢN KIỂM THỬ 3 APIS](#iii-chi-tiết-thiết-kế-kịch-bản-kiểm-thử-3-apis)

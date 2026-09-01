@@ -4,7 +4,7 @@
 
 ---
 
-### 📌 THÔNG TIN ĐẶC TẢ KỸ THUẬT & SUT REALITY
+### THÔNG TIN ĐẶC TẢ KỸ THUẬT & SUT REALITY
 - **Endpoint:** `POST /api/apply-coupon`
 - **Method:** `POST`
 - **Authentication (Spec C4):** Bearer JWT Token (`Authorization: Bearer <user_token>`)
@@ -130,7 +130,7 @@
 
 ---
 
-## 🛠️ ĐOẠN MÃ POSTMAN TEST SCRIPT CHUẨN XÁC THỰC CÔNG THỨC FR-09
+## ĐOẠN MÃ POSTMAN TEST SCRIPT CHUẨN XÁC THỰC CÔNG THỨC FR-09
 
 ```javascript
 // 1. Kiểm tra Status Code
