@@ -692,6 +692,23 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
      - Thay lệnh `npm start &` bằng `node server.js &`.
   ```
 
+### Prompt 37 (Xử lý Timeout wait-on cổng HTTP vs TCP 3000):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 10:18 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  [Hình ảnh log lỗi Timed out waiting for: http://127.0.0.1:3000]
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt chẩn đoán:
+  1. Nguyên nhân: Server SUT backend Express chỉ khai báo các route API `/api/*` mà không có route root `GET /` (trả về 404). Lệnh `wait-on http://127.0.0.1:3000` mặc định mong đợi status 200 nên bị coi là chưa sẵn sàng dẫn đến timeout.
+  2. Giải pháp: Chuyển sang kiểm tra mở cổng TCP `npx wait-on tcp:3000 -t 30000` giúp nhận diện server Express đã lắng nghe kết nối ngay lập tức.
+  ```
+
 ---
 
 ## Thực thi tự động với Newman, Xuất HTML Report & Săn lỗi SUT

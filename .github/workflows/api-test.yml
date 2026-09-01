@@ -31,7 +31,7 @@ jobs:
           cd sut_backend/backend
           npm install
           node server.js &
-          npx wait-on http://127.0.0.1:3000 -t 30000
+          npx wait-on tcp:3000 -t 30000
 
       - name: 5. Execute Newman Collections (FR-06, FR-09, FR-17)
         run: |
