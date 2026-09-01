@@ -1,480 +1,102 @@
-# Danh sách Lỗi Phát hiện trên SUT EShop (Bug Report)
-
-Dưới đây là các lỗi thực tế (Bugs) được phát hiện trong quá trình chạy kiểm thử tự động với Newman/Postman trên hệ thống Backend SUT EShop (`http://localhost:3000`), đối chiếu với đặc tả kỹ thuật `api_specification.md` và các tiêu chuẩn kiểm thử API chuyên nghiệp.
-
----
-
-## 1. BUG #01: [FR-06] Endpoint trả về HTTP `200 OK` kèm body rỗng `{}` khi ID sản phẩm không tồn tại hoặc đã bị xóa (Vi phạm chuẩn RESTful API)
-
-- **Mã Bug:** `BUG_FR06_01`
-- **Mã chức năng:** FR-06: Xem chi tiết sản phẩm (`GET /api/products/:id`)
-- **Mức độ nghiêm trọng (Severity):** **Medium / Functional Defect (REST Compliance)**
-- **Các Test Cases phát hiện lỗi:** `TC_FR06_ST_03`, `TC_FR06_ST_08`, `TC_FR06_DP_07`, `TC_FR06_SCH_02`
-- **Báo cáo Newman minh chứng:** File [`reports/fr06_newman_report.html`](../reports/fr06_newman_report.html) (Mục Failed Assertions)
-- **Link GitHub Issue:** `https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/1`
-
-### Mô tả chi tiết:
-Theo chuẩn thiết kế RESTful API, khi client yêu cầu tài nguyên không tồn tại trong CSDL hoặc tài nguyên đã bị xóa vĩnh viễn, Server bắt buộc phải phản hồi mã trạng thái **`404 Not Found`** kèm thông báo lỗi rõ ràng dạng JSON (ví dụ `{"message": "Product not found"}`).
-Tuy nhiên, khi gửi request `GET /api/products/999999` hoặc truy vấn lại sản phẩm vừa bị xóa, SUT Backend lại phản hồi mã **`200 OK`** với Response Body rỗng `{}`.
-
-### Các bước tái hiện (Steps to Reproduce):
-1. Đảm bảo backend SUT đang chạy tại `http://localhost:3000`.
-2. Gửi request HTTP GET với cURL hoặc Postman:
-   ```bash
-   curl -X GET "http://localhost:3000/api/products/999999" \
-        -H "X-Student-Id: 23127125"
-   ```
-3. Quan sát HTTP Status Code và Response Body trả về.
-
-### Kết quả Thực tế (Actual Result):
-- **HTTP Status Code:** `200 OK`
-- **Response Headers:** `Content-Length: 2`, `Content-Type: application/json`
-- **Response Body:** `{}`
-
-### Kết quả Mong đợi (Expected Result):
-- **HTTP Status Code:** `404 Not Found`
-- **Response Body:** Object chứa thông báo lỗi, ví dụ:
-  ```json
-  {
-    "status": 404,
-    "message": "Product with ID 999999 not found"
-  }
-  ```
-
-### Phân tích nguyên nhân gốc rễ (Root Cause) & Đề xuất khắc phục (Fix):
-- **Nguyên nhân:** Trong Express route `app.get('/api/products/:id')`, câu lệnh `db.prepare('SELECT * FROM products WHERE id = ?').get(id)` trả về `undefined`. Controller không kiểm tra `if (!product)` mà chuyển thẳng vào `res.json(product || {})`, dẫn đến Express trả về status mặc định là 200.
-- **Cách khắc phục:**
-  ```javascript
-  const product = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
-  if (!product) {
-      return res.status(404).json({ error: "Product not found", status: 404 });
-  }
-  return res.status(200).json(product);
-  ```
+# Báo cáo Tổng hợp Lỗi Phát hiện trên SUT EShop (Bug Report)
+## Hệ thống: EShop Backend (`http://localhost:3000`)
+### Sinh viên: Nguyễn Hiếu Thuận — MSSV: 23127125
 
 ---
 
-## 2. BUG #02: [FR-06][SEC-01] Thiếu Input Validation trên Path Parameter `:id`, chấp nhận SQL Injection và chuỗi bất hợp lệ trả về `200 OK`
+## 📊 1. BẢNG TỔNG HỢP 9 BUGS THỰC TẾ TRÊN SUT
 
-- **Mã Bug:** `BUG_FR06_02`
-- **Mã chức năng:** FR-06: Xem chi tiết sản phẩm (`GET /api/products/:id`)
-- **Mức độ nghiêm trọng (Severity):** **High / Security & Robustness (SEC-01, SEC-07)**
-- **Các Test Cases phát hiện lỗi:** `TC_FR06_DP_04` (ID=0), `TC_FR06_DP_05` (ID=-1), `TC_FR06_DP_12` ('abc'), `TC_FR06_DP_14` (UUID), `TC_FR06_SEC_01` (`1 OR 1=1`), `TC_FR06_SEC_02` (`1'--`), `TC_FR06_SEC_03`, `TC_FR06_SEC_04`, `TC_FR06_EXT_02`, `TC_FR06_EXT_04`.
-- **Báo cáo Newman minh chứng:** File [`reports/fr06_newman_report.html`](../reports/fr06_newman_report.html)
-- **Link GitHub Issue:** `https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/2`
-
-### Mô tả chi tiết:
-Đặc tả quy định tham số Path `:id` phải là một **số nguyên dương $\ge 1$**. Hệ thống cần có tầng kiểm tra dữ liệu đầu vào (Input Validation Middleware) để từ chối ngay lập tức các tham số sai kiểu dữ liệu (chuỗi chữ, số âm, số 0, ký tự đặc biệt) và các payload tấn công SQL Injection bằng mã trạng thái **`400 Bad Request`**.
-Thực tế, backend SUT không hề validate tham số này, chấp nhận mọi chuỗi đầu vào độc hại và âm thầm phản hồi HTTP `200 OK` với body `{}`.
-
-### Các bước tái hiện (Steps to Reproduce):
-1. Gửi request với tham số chữ cái hoặc payload SQL Injection:
-   ```bash
-   curl -X GET "http://localhost:3000/api/products/1%20OR%201=1" \
-        -H "X-Student-Id: 23127125"
-   ```
-2. Gửi request với ID âm hoặc số 0:
-   ```bash
-   curl -X GET "http://localhost:3000/api/products/-1" \
-        -H "X-Student-Id: 23127125"
-   ```
-
-### Kết quả Thực tế (Actual Result):
-- **HTTP Status Code:** `200 OK`
-- **Response Body:** `{}` (hoặc lấy ra bản ghi đầu tiên nếu câu SQL bị bypass)
-
-### Kết quả Mong đợi (Expected Result):
-- **HTTP Status Code:** `400 Bad Request`
-- **Response Body:**
-  ```json
-  {
-    "status": 400,
-    "error": "Invalid product ID. ID must be a positive integer >= 1."
-  }
-  ```
-
-### Phân tích nguyên nhân gốc rễ (Root Cause) & Đề xuất khắc phục (Fix):
-- **Nguyên nhân:** Thiếu middleware kiểm tra `const id = Number(req.params.id); if (!Number.isInteger(id) || id <= 0) ...`.
-- **Cách khắc phục:**
-  ```javascript
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({ error: "Invalid product ID. Must be positive integer >= 1", status: 400 });
-  }
-  ```
+| STT | Mã Bug | Tính năng | Mức độ (Severity) | Tên Lỗi Kỹ Thuật | Test Cases phát hiện | GitHub Issue Link |
+| :---: | :---: | :---: | :---: | :--- | :--- | :---: |
+| **1** | `BUG_FR06_01` | FR-06 | Medium | Trả về `200 OK` body `{}` khi ID không tồn tại hoặc đã bị xóa | `TC_FR06_ST_03`, `TC_FR06_DP_07` | [#2](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/2) |
+| **2** | `BUG_FR06_02` | FR-06 | High (SEC-01/07) | Thiếu Input Validation trên Path `:id`, chấp nhận SQLi & chuỗi rác | `TC_FR06_SEC_01`, `TC_FR06_DP_04` | [#3](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/3) |
+| **3** | `BUG_FR06_03` | FR-06 | Medium | Sai kiểu dữ liệu trường `price` sản phẩm ID=2 (String thay vì Number) | `TC_FR06_DP_02` | [#4](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/4) |
+| **4** | `BUG_FR09_01` | FR-09 | High (SEC-02) | Auth Bypass — `/api/apply-coupon` không xác thực Bearer JWT (Vi phạm C4) | `TC_FR09_COND_08`, `TC_FR09_SEC_02` | [#5](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/5) |
+| **5** | `BUG_FR09_02` | FR-09 | Critical | Lỗi tính %: `discount_amount = total * (1 - value)` ra số âm và đội giá | `TC_FR09_SCH_02` | [#6](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/6) |
+| **6** | `BUG_FR09_03` | FR-09 | Medium | Lỗi biên C3: Đơn đúng bằng `min_order_amount` (300k) bị từ chối 400 | `TC_FR09_EXT_01`, `TC_FR09_EXT_05` | [#7](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/7) |
+| **7** | `BUG_FR17_01` | FR-17 | Critical (OWASP A01) | Leo quyền RBAC — User thường tạo & xóa được mã giảm giá Admin | `TC_FR17_SEC_01`, `TC_FR17_EXT_01` | [#8](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/8) |
+| **8** | `BUG_FR17_02` | FR-17 | High (SEC-07) | Lỗi 500 & Rò rỉ lỗi CSDL `SQLITE_CONSTRAINT` khi tạo mã trùng code | `TC_FR17_DP_04`, `TC_FR17_EXT_02` | [#9](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/9) |
+| **9** | `BUG_FR17_03` | FR-17 | Medium | Thiếu Validation khi Tạo Mã Admin (cho phép giảm > 100%, min < 0) | `TC_FR17_DP_05`, `TC_FR17_EXT_03` | [#10](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/10) |
 
 ---
 
-## 3. BUG #03: [FR-06] Sai lệch Kiểu Dữ liệu CSDL SQLite — Trường `price` của sản phẩm ID=2 trả về dạng Chuỗi thay vì Số (JSON Schema Mismatch)
+## 📝 2. CHI TIẾT CÁC LỖI & LIÊN KẾT GITHUB ISSUES
 
-- **Mã Bug:** `BUG_FR06_03`
-- **Mã chức năng:** FR-06: Xem chi tiết sản phẩm (`GET /api/products/2`)
-- **Mức độ nghiêm trọng (Severity):** **Medium / Schema Integrity**
-- **Test Case phát hiện lỗi:** `TC_FR06_DP_02_Valid_Intermediate_Integer_ID_2`
-- **Báo cáo Newman minh chứng:** File [`reports/fr06_newman_report.html`](../reports/fr06_newman_report.html)
-- **Link GitHub Issue:** `https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/3`
-
-### Mô tả chi tiết:
-Theo đặc tả JSON Schema của API `GET /api/products/:id`, trường `price` bắt buộc phải là **kiểu số (number/integer $\ge 0$)** để Frontend có thể thực hiện tính toán số học (tính tổng tiền giỏ hàng, áp mã giảm giá).
-Khi kiểm thử sản phẩm `id = 2`, assertion kiểm tra kiểu số bị FAIL với thông báo:
-`AssertionError: expected '28000000' to be a number or a date`.
-
-### Các bước tái hiện (Steps to Reproduce):
-1. Gửi request lấy thông tin sản phẩm 2:
-   ```bash
-   curl -X GET "http://localhost:3000/api/products/2" \
-        -H "X-Student-Id: 23127125"
-   ```
-2. Kiểm tra `typeof response.price` trong JSON phản hồi.
-
-### Kết quả Thực tế (Actual Result):
-```json
-{
-  "id": 2,
-  "name": "Samsung Galaxy S24 Ultra",
-  "price": "28000000",
-  "description": "Điện thoại flagship của Samsung",
-  "imageUrl": "https://placehold.co/300x300/png?text=Galaxy+S24",
-  "category_id": 1
-}
-```
-*(Trường `price` có giá trị là chuỗi `"28000000"`)*.
-
-### Kết quả Mong đợi (Expected Result):
-```json
-{
-  "id": 2,
-  "name": "Samsung Galaxy S24 Ultra",
-  "price": 28000000,
-  "description": "Điện thoại flagship của Samsung",
-  "imageUrl": "https://placehold.co/300x300/png?text=Galaxy+S24",
-  "category_id": 1
-}
-```
-*(Trường `price` phải là kiểu số nguyên/thực `28000000`)*.
-
-### Phân tích nguyên nhân gốc rễ (Root Cause) & Đề xuất khắc phục (Fix):
-- **Nguyên nhân:** Khi khởi tạo seed data CSDL SQLite (`database.sqlite`), câu lệnh `INSERT INTO products (id, name, price, ...)` đã truyền `'28000000'` dưới dạng text, hoặc cột `price` được định nghĩa là `TEXT` thay vì `REAL`/`INTEGER`.
-- **Cách khắc phục:** Sửa schema bảng SQLite thành `price REAL NOT NULL` hoặc ép kiểu `Number(product.price)` trước khi trả về client.
+### 🔹 Bug #1: `BUG_FR06_01` — Trả về `200 OK` body `{}` khi ID không tồn tại
+- **Endpoint:** `GET /api/products/:id`
+- **Severity:** `Medium / REST Compliance`
+- **Mô tả ngắn:** Khi gọi `GET /api/products/999999`, hệ thống phản hồi `200 OK` với body `{}` thay vì `404 Not Found`.
+- **Root Cause & Fix:** Trong `server.js`, thiếu kiểm tra `if (!product) return res.status(404).json({ error: "Product not found" })`.
+- 🔗 **GitHub Issue chi tiết:** [Issue #2](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/2)
 
 ---
 
-## 4. BUG #04: [FR-09][SEC-02] Lỗ hổng Authentication Bypass — Endpoint `/api/apply-coupon` không xác thực Bearer JWT Token (Vi phạm Điều kiện C4)
-
-- **Mã Bug:** `BUG_FR09_01`
-- **Mã chức năng:** FR-09: Áp dụng mã giảm giá (`POST /api/apply-coupon`)
-- **Mức độ nghiêm trọng (Severity):** **High / Security (SEC-02 - Missing Authentication)**
-- **Các Test Cases phát hiện lỗi:** `TC_FR09_COND_08`, `TC_FR09_COND_12`, `TC_FR09_SEC_02`, `TC_FR09_SEC_03`, `TC_FR09_SEC_04`
-- **Báo cáo Newman minh chứng:** File [`reports/fr09_newman_report.html`](../reports/fr09_newman_report.html)
-- **Link GitHub Issue:** `https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/4`
-
-### Mô tả chi tiết:
-Đặc tả nghiệp vụ Điều kiện C4 nêu rõ: *"Người dùng phải đăng nhập và có JWT Token hợp lệ"*. Nếu không có token, token giả hoặc token hết hạn, API phải phản hồi **`401 Unauthorized`**.
-Thực tế trong mã nguồn backend (`server.js`), route `POST /api/apply-coupon` là một Public API không gắn middleware `authenticateToken`. Người dùng ẩn danh gửi request không có token hoặc token rác vẫn được hệ thống áp mã thành công với mã **`200 OK`**.
-
-### Các bước tái hiện (Steps to Reproduce):
-1. Gửi request áp mã giảm giá mà không kèm header `Authorization`:
-   ```bash
-   curl -X POST "http://localhost:3000/api/apply-coupon" \
-        -H "Content-Type: application/json" \
-        -H "X-Student-Id: 23127125" \
-        -d '{"code": "SAVE10", "total_amount": 500000, "user_id": 1}'
-   ```
-2. Quan sát phản hồi của server.
-
-### Kết quả Thực tế (Actual Result):
-- **HTTP Status Code:** `200 OK`
-- **Response Body:** Áp dụng mã thành công, không đòi hỏi xác thực.
-
-### Kết quả Mong đợi (Expected Result):
-- **HTTP Status Code:** `401 Unauthorized`
-- **Response Body:** `{"error": "Unauthorized"}`
-
-### Phân tích nguyên nhân gốc rễ (Root Cause) & Đề xuất khắc phục (Fix):
-- **Nguyên nhân:** Lập trình viên quên gắn middleware `authenticateToken` vào khai báo route Express:
-  ```javascript
-  // Hiện tại trong server.js:
-  app.post("/api/apply-coupon", (req, res) => { ... });
-  ```
-- **Cách khắc phục:**
-  ```javascript
-  // Cần sửa thành:
-  app.post("/api/apply-coupon", authenticateToken, (req, res) => {
-      const userId = req.user.id; // Lấy trực tiếp từ Token đã xác thực
-      // ...
-  });
-  ```
+### 🔹 Bug #2: `BUG_FR06_02` — Thiếu Input Validation trên Path `:id`, chấp nhận SQLi
+- **Endpoint:** `GET /api/products/:id`
+- **Severity:** `High / Security (SEC-01, SEC-07)`
+- **Mô tả ngắn:** Chấp nhận ID âm, ID chữ, SQL injection (`1 OR 1=1`) và trả về `200 OK` thay vì từ chối `400 Bad Request`.
+- **Root Cause & Fix:** Thiếu middleware kiểm tra `if (!Number.isInteger(Number(id)) || id <= 0) return res.status(400)...`.
+- 🔗 **GitHub Issue chi tiết:** [Issue #3](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/3)
 
 ---
 
-## 5. BUG #05: [FR-09] Lỗi Tính Toán Số Học — Công thức tính giảm giá theo phần trăm (percent) cho kết quả âm và đội giá đơn hàng (Critical Math Defect)
-
-- **Mã Bug:** `BUG_FR09_02`
-- **Mã chức năng:** FR-09: Áp dụng mã giảm giá (`POST /api/apply-coupon`)
-- **Mức độ nghiêm trọng (Severity):** **Critical / Business Logic Math Error**
-- **Test Case phát hiện lỗi:** `TC_FR09_SCH_02_Math_Percent_Calculation_Accuracy`
-- **Báo cáo Newman minh chứng:** File [`reports/fr09_newman_report.html`](../reports/fr09_newman_report.html)
-- **Link GitHub Issue:** `https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/5`
-
-### Mô tả chi tiết:
-Công thức nghiệp vụ quy định: Với mã loại `percent` (như `SAVE10` giảm 10%), tiền giảm giá $\text{discount\_amount} = \text{total} \times \text{value} / 100$, tổng tiền thanh toán $\text{final\_amount} = \text{total} - \text{discount\_amount}$.
-Đơn hàng 500,000 ₫ áp mã 10% phải giảm 50,000 ₫ (thanh toán 450,000 ₫).
-Tuy nhiên, backend tính ra `discount_amount = -4,500,000 ₫` và `final_amount = 5,000,000 ₫` (tiền thanh toán bị tăng gấp 10 lần!).
-
-### Các bước tái hiện (Steps to Reproduce):
-1. Gửi request áp mã `SAVE10` (giảm 10%) cho đơn hàng 500,000 ₫:
-   ```bash
-   curl -X POST "http://localhost:3000/api/apply-coupon" \
-        -H "Content-Type: application/json" \
-        -H "X-Student-Id: 23127125" \
-        -d '{"code": "SAVE10", "total_amount": 500000, "user_id": 1}'
-   ```
-2. Kiểm tra giá trị `discount_amount` và `final_amount` trong phản hồi.
-
-### Kết quả Thực tế (Actual Result):
-```json
-{
-  "success": true,
-  "coupon_id": 1,
-  "discount_amount": -4500000,
-  "final_amount": 5000000,
-  "message": "Áp dụng thành công! Giảm 10%"
-}
-```
-
-### Kết quả Mong đợi (Expected Result):
-```json
-{
-  "success": true,
-  "coupon_id": 1,
-  "discount_amount": 50000,
-  "final_amount": 450000,
-  "message": "Áp dụng thành công! Giảm 10%"
-}
-```
-
-### Phân tích nguyên nhân gốc rễ (Root Cause) & Đề xuất khắc phục (Fix):
-- **Nguyên nhân:** Trong `server.js` (dòng 399-401 & 419-421), lập trình viên viết sai công thức số học:
-  ```javascript
-  if (coupon.type === "percent") {
-      discount_amount = Math.floor(total_amount * (1 - coupon.discount_value));
-  }
-  ```
-  Vì `coupon.discount_value = 10`, nên `(1 - 10) = -9`.
-- **Cách khắc phục:**
-  ```javascript
-  if (coupon.type === "percent") {
-      discount_amount = Math.floor(total_amount * (coupon.discount_value / 100));
-  }
-  ```
+### 🔹 Bug #3: `BUG_FR06_03` — Sai lệch kiểu dữ liệu trường `price` của sản phẩm ID=2
+- **Endpoint:** `GET /api/products/2`
+- **Severity:** `Medium / Schema Integrity`
+- **Mô tả ngắn:** Trường `price` trả về dạng chuỗi `"28000000"` thay vì kiểu số `28000000`, làm gãy schema validation.
+- **Root Cause & Fix:** Seed data SQLite lưu dạng text. Cần đổi kiểu cột thành `REAL` hoặc ép kiểu `Number(product.price)`.
+- 🔗 **GitHub Issue chi tiết:** [Issue #4](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/4)
 
 ---
 
-## 6. BUG #06: [FR-09] Lỗi So Sánh Giá Trị Biên Ngưỡng Tối Thiểu C3 — Đơn hàng đúng bằng `min_order_amount` bị từ chối `400 Bad Request` (Off-by-One Defect)
-
-- **Mã Bug:** `BUG_FR09_03`
-- **Mã chức năng:** FR-09: Áp dụng mã giảm giá (`POST /api/apply-coupon`)
-- **Mức độ nghiêm trọng (Severity):** **Medium / Boundary Logic Defect**
-- **Các Test Cases phát hiện lỗi:** `TC_FR09_EXT_01`, `TC_FR09_EXT_05 (Iteration 8)`
-- **Báo cáo Newman minh chứng:** File [`reports/fr09_newman_report.html`](../reports/fr09_newman_report.html), [`reports/fr09_data_driven_report.html`](../reports/fr09_data_driven_report.html)
-- **Link GitHub Issue:** `https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/6`
-
-### Mô tả chi tiết:
-Điều kiện C3 trong tài liệu đặc tả quy định: *"Đủ ngưỡng đơn hàng: Tổng đơn hàng $\ge$ (lớn hơn hoặc bằng) `min_order_amount`"*.
-Khi khách hàng mua đơn hàng có giá trị chính xác bằng ngưỡng tối thiểu (ví dụ `total_amount = 300,000 ₫` đối với mã `SAVE10`), hệ thống bắt buộc phải chấp nhận và phản hồi mã trạng thái **`200 OK`**.
-Tuy nhiên, backend SUT lại từ chối với mã **`400 Bad Request`** và báo lỗi *"Đơn hàng chưa đủ giá trị tối thiểu"*.
-
-### Các bước tái hiện (Steps to Reproduce):
-1. Gửi request với `total_amount` bằng đúng `min_order_amount` (300,000 ₫):
-   ```bash
-   curl -X POST "http://localhost:3000/api/apply-coupon" \
-        -H "Content-Type: application/json" \
-        -H "X-Student-Id: 23127125" \
-        -d '{"code": "SAVE10", "total_amount": 300000, "user_id": 1}'
-   ```
-2. Quan sát HTTP status và thông báo trả về.
-
-### Kết quả Thực tế (Actual Result):
-- **HTTP Status Code:** `400 Bad Request`
-- **Response Body:** `{"error": "Đơn hàng chưa đủ giá trị tối thiểu 300.000 ₫ để áp dụng mã này"}`
-
-### Kết quả Mong đợi (Expected Result):
-- **HTTP Status Code:** `200 OK`
-- **Response Body:** Áp dụng mã thành công, giảm 30,000 ₫, thanh toán 270,000 ₫.
-
-### Phân tích nguyên nhân gốc rễ (Root Cause) & Đề xuất khắc phục (Fix):
-- **Nguyên nhân:** Trong `server.js` (dòng 379), câu lệnh điều kiện dùng toán tử `>` (lớn hơn hẳn) thay vì `>=` (lớn hơn hoặc bằng):
-  ```javascript
-  if (total_amount > coupon.min_order_amount) { ... }
-  ```
-- **Cách khắc phục:**
-  ```javascript
-  if (total_amount >= coupon.min_order_amount) { ... }
-  ```
+### 🔹 Bug #4: `BUG_FR09_01` — Lỗ hổng Auth Bypass trên `/api/apply-coupon`
+- **Endpoint:** `POST /api/apply-coupon`
+- **Severity:** `High / Security (SEC-02 Auth Bypass)`
+- **Mô tả ngắn:** Endpoint không kiểm tra Bearer JWT Token (Vi phạm điều kiện C4), cho phép khách vãng lai không đăng nhập áp mã thành công.
+- **Root Cause & Fix:** Quên gắn middleware `authenticateToken` vào khai báo route `POST /api/apply-coupon`.
+- 🔗 **GitHub Issue chi tiết:** [Issue #5](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/5)
 
 ---
 
-## 7. BUG #07: [FR-17][SEC-02] Lỗ hổng Leo Quyền Phân Quyền (RBAC Privilege Escalation) — Tài khoản User thường thực hiện được toàn bộ quyền Quản trị Tạo & Xóa Mã giảm giá
-
-- **Mã Bug:** `BUG_FR17_01`
-- **Mã chức năng:** FR-17: Quản lý mã giảm giá Admin (`POST /api/admin/coupons`, `DELETE /api/admin/coupons/:id`)
-- **Mức độ nghiêm trọng (Severity):** **Critical / Security (Broken Access Control - OWASP A01)**
-- **Các Test Cases phát hiện lỗi:** `TC_FR17_SEC_01`, `TC_FR17_SEC_02`, `TC_FR17_EXT_01`
-- **Báo cáo Newman minh chứng:** File [`reports/fr17_newman_report.html`](../reports/fr17_newman_report.html)
-- **Link GitHub Issue:** `https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/7`
-
-### Mô tả chi tiết:
-Theo đặc tả phân quyền RBAC (Role-Based Access Control) của hệ thống:
-- Các endpoint chứa tiền tố `/api/admin/*` là tài nguyên quản trị tối cao, bắt buộc phải có Token của tài khoản có `role: "admin"`.
-- Khi người dùng thông thường (`role: "user"`) gửi request tới các endpoint này, Server bắt buộc phải từ chối với mã **`403 Forbidden`** kèm thông báo lỗi *"Admin privileges required"*.
-
-Thực tế, backend SUT chỉ kiểm tra xem Token có hợp lệ hay không mà **hoàn toàn không kiểm tra vai trò (Role) của người dùng**. Kẻ tấn công mang token User thường có thể tùy ý tạo mã giảm giá 100% (`SUMMER20`) hoặc xóa sạch toàn bộ mã giảm giá của hệ thống với mã phản hồi **`200 OK`**.
-
-### Các bước tái hiện (Steps to Reproduce):
-1. Đăng nhập tài khoản User thường (`test@eshop.com` / `Test1234!`) để lấy JWT Token (`user_token`).
-2. Gửi request tạo mã giảm giá Admin bằng cURL:
-   ```bash
-   curl -X POST "http://localhost:3000/api/admin/coupons" \
-        -H "Content-Type: application/json" \
-        -H "Authorization: Bearer <user_token>" \
-        -H "X-Student-Id: 23127125" \
-        -d '{"code": "HACK99", "type": "percent", "discount_value": 99, "min_order_amount": 0}'
-   ```
-3. Quan sát phản hồi của server.
-
-### Kết quả Thực tế (Actual Result):
-- **HTTP Status Code:** `200 OK`
-- **Response Body:** `{"message": "Coupon created", "id": 6}` *(Tạo mã thành công bằng quyền User thường!)*
-
-### Kết quả Mong đợi (Expected Result):
-- **HTTP Status Code:** `403 Forbidden`
-- **Response Body:** `{"error": "Access denied: Admin role required", "status": 403}`
-
-### Phân tích nguyên nhân gốc rễ (Root Cause) & Đề xuất khắc phục (Fix):
-- **Nguyên nhân:** Trong `server.js`, các route admin chỉ sử dụng middleware `authenticateToken` chung mà không sử dụng middleware kiểm tra vai trò `requireAdmin`:
-  ```javascript
-  // Hiện tại trong server.js:
-  app.post('/api/admin/coupons', authenticateToken, (req, res) => { ... });
-  app.delete('/api/admin/coupons/:id', authenticateToken, (req, res) => { ... });
-  ```
-- **Cách khắc phục:**
-  ```javascript
-  const requireAdmin = (req, res, next) => {
-      if (req.user && req.user.role === 'admin') {
-          next();
-      } else {
-          return res.status(403).json({ error: "Access denied: Admin role required", status: 403 });
-      }
-  };
-  app.post('/api/admin/coupons', authenticateToken, requireAdmin, (req, res) => { ... });
-  app.delete('/api/admin/coupons/:id', authenticateToken, requireAdmin, (req, res) => { ... });
-  ```
+### 🔹 Bug #5: `BUG_FR09_02` — Lỗi công thức tính giảm giá % cho kết quả âm
+- **Endpoint:** `POST /api/apply-coupon`
+- **Severity:** `Critical / Business Logic Math Error`
+- **Mô tả ngắn:** Áp mã 10% cho đơn 500k tính ra `discount_amount = -4,500,000` và `final_amount = 5,000,000` (đội giá gấp 10 lần).
+- **Root Cause & Fix:** Công thức viết sai `(1 - coupon.discount_value)` thay vì `(coupon.discount_value / 100)`.
+- 🔗 **GitHub Issue chi tiết:** [Issue #6](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/6)
 
 ---
 
-## 8. BUG #08: [FR-17][SEC-07] Lỗi Máy chủ `500 Internal Server Error` và Rò rỉ Chi tiết CSDL SQLite khi Tạo Mã Trùng Lặp (Information Disclosure)
-
-- **Mã Bug:** `BUG_FR17_02`
-- **Mã chức năng:** FR-17: Quản lý mã giảm giá Admin (`POST /api/admin/coupons`)
-- **Mức độ nghiêm trọng (Severity):** **High / Security & Robustness (SEC-07 - Information Leakage)**
-- **Các Test Cases phát hiện lỗi:** `TC_FR17_DP_04`, `TC_FR17_SEC_10`, `TC_FR17_EXT_02`
-- **Báo cáo Newman minh chứng:** File [`reports/fr17_newman_report.html`](../reports/fr17_newman_report.html)
-- **Link GitHub Issue:** `https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/8`
-
-### Mô tả chi tiết:
-Cột `code` trong bảng `coupons` có ràng buộc duy nhất (`UNIQUE`). Khi Admin tạo một mã giảm giá đã tồn tại trong CSDL (ví dụ `SAVE10` hoặc `BIGBUY`), Server cần bắt lỗi nghiệp vụ này và phản hồi mã trạng thái Client Error phù hợp (**`400 Bad Request`** hoặc **`409 Conflict`**) kèm thông báo lỗi thân thiện.
-Thực tế, backend SUT ném ra lỗi ngoại lệ chưa được xử lý, trả về mã **`500 Internal Server Error`** và làm rò rỉ trực tiếp chi tiết truy vấn nội bộ SQLite ra client:
-`{"error": "SQLITE_CONSTRAINT: UNIQUE constraint failed: coupons.code"}`.
-
-### Các bước tái hiện (Steps to Reproduce):
-1. Gửi request tạo mã giảm giá với mã đã tồn tại (`SAVE10`):
-   ```bash
-   curl -X POST "http://localhost:3000/api/admin/coupons" \
-        -H "Content-Type: application/json" \
-        -H "Authorization: Bearer <admin_token>" \
-        -H "X-Student-Id: 23127125" \
-        -d '{"code": "SAVE10", "type": "percent", "discount_value": 10, "min_order_amount": 100000}'
-   ```
-2. Quan sát phản hồi của server.
-
-### Kết quả Thực tế (Actual Result):
-- **HTTP Status Code:** `500 Internal Server Error`
-- **Response Body:**
-  ```json
-  {
-    "error": "SQLITE_CONSTRAINT: UNIQUE constraint failed: coupons.code"
-  }
-  ```
-
-### Kết quả Mong đợi (Expected Result):
-- **HTTP Status Code:** `400 Bad Request` hoặc `409 Conflict`
-- **Response Body:**
-  ```json
-  {
-    "error": "Coupon code already exists",
-    "status": 409
-  }
-  ```
-
-### Phân tích nguyên nhân gốc rễ (Root Cause) & Đề xuất khắc phục (Fix):
-- **Nguyên nhân:** Trong callback `db.run(sql, params, function(err) { ... })`, controller xử lý lỗi thô sơ bằng `if (err) return res.status(500).json({ error: err.message });`.
-- **Cách khắc phục:**
-  ```javascript
-  if (err) {
-      if (err.message.includes('UNIQUE constraint failed')) {
-          return res.status(409).json({ error: "Coupon code already exists", status: 409 });
-      }
-      return res.status(500).json({ error: "Internal Server Error" });
-  }
-  ```
+### 🔹 Bug #6: `BUG_FR09_03` — Lỗi biên C3: Đơn bằng đúng `min_order_amount` bị từ chối 400
+- **Endpoint:** `POST /api/apply-coupon`
+- **Severity:** `Medium / Boundary Logic Defect`
+- **Mô tả ngắn:** Đơn hàng đúng 300,000 ₫ áp mã `SAVE10` (min 300k) bị từ chối `400 Bad Request` do dùng toán tử `>` thay vì `>=`.
+- **Root Cause & Fix:** Sửa `if (total_amount > coupon.min_order_amount)` thành `if (total_amount >= coupon.min_order_amount)`.
+- 🔗 **GitHub Issue chi tiết:** [Issue #7](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/7)
 
 ---
 
-## 9. BUG #09: [FR-17] Thiếu Toàn bộ Tầng Input Validation khi Tạo Mã — Cho phép Giá trị Giảm > 100%, Ngưỡng Đơn Âm, Lượt Dùng $\le 0$ và Sai Format Ngày
+### 🔹 Bug #7: `BUG_FR17_01` — Lỗ hổng Leo Quyền Phân Quyền (RBAC Privilege Escalation)
+- **Endpoint:** `POST /api/admin/coupons`, `DELETE /api/admin/coupons/:id`
+- **Severity:** `Critical / Security (OWASP A01 Broken Access Control)`
+- **Mô tả ngắn:** Tài khoản User thường mang JWT Token vẫn gọi được API Admin tạo và xóa mã giảm giá thành công.
+- **Root Cause & Fix:** Route Admin chỉ check Token hợp lệ mà không check `req.user.role === 'admin'`. Cần thêm middleware `requireAdmin`.
+- 🔗 **GitHub Issue chi tiết:** [Issue #8](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/8)
 
-- **Mã Bug:** `BUG_FR17_03`
-- **Mã chức năng:** FR-17: Quản lý mã giảm giá Admin (`POST /api/admin/coupons`, `DELETE /api/admin/coupons/:id`)
-- **Mức độ nghiêm trọng (Severity):** **Medium / Data Integrity & Input Validation**
-- **Các Test Cases phát hiện lỗi:** `TC_FR17_DP_05`, `TC_FR17_DP_06`, `TC_FR17_DP_07`, `TC_FR17_DP_08`, `TC_FR17_DP_12`, `TC_FR17_DP_13`, `TC_FR17_DP_14`, `TC_FR17_DP_16`, `TC_FR17_CRUD_08`, `TC_FR17_EXT_03`
-- **Báo cáo Newman minh chứng:** File [`reports/fr17_newman_report.html`](../reports/fr17_newman_report.html)
-- **Link GitHub Issue:** `https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/9`
+---
 
-### Mô tả chi tiết:
-Đặc tả yêu cầu hệ thống phải kiểm tra tính hợp lệ của dữ liệu đầu vào trước khi lưu vào CSDL:
-1. `type`: Chỉ chấp nhận `"percent"` hoặc `"fixed"`.
-2. `discount_value`: Phải lớn hơn 0; nếu `type = "percent"` thì không được vượt quá `100%`.
-3. `min_order_amount`: Phải là số nguyên $\ge 0$.
-4. `max_uses_per_user`: Phải là số nguyên $\ge 1$.
-5. `expired_at`: Phải là chuỗi ngày hợp lệ ISO 8601.
+### 🔹 Bug #8: `BUG_FR17_02` — Lỗi 500 & Rò rỉ CSDL SQLite khi tạo mã trùng code
+- **Endpoint:** `POST /api/admin/coupons`
+- **Severity:** `High / Security (SEC-07 Information Disclosure)`
+- **Mô tả ngắn:** Tạo mã trùng `code UNIQUE` ném lỗi `500 Internal Server Error` kèm chuỗi `SQLITE_CONSTRAINT: UNIQUE constraint failed`.
+- **Root Cause & Fix:** Bắt lỗi `err.message.includes('UNIQUE constraint')` và phản hồi mã `409 Conflict` hoặc `400 Bad Request`.
+- 🔗 **GitHub Issue chi tiết:** [Issue #9](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/9)
 
-Thực tế, backend SUT không kiểm tra bất kỳ trường nào trong số trên, lưu trực tiếp dữ liệu rác (ví dụ giảm giá 200%, số tiền tối thiểu -50,000 ₫, chuỗi ngày `"invalid_date"`) vào CSDL và trả về **`200 OK`**.
+---
 
-### Các bước tái hiện (Steps to Reproduce):
-1. Gửi request tạo mã giảm giá với `discount_value = 200%` và `min_order_amount = -50000`:
-   ```bash
-   curl -X POST "http://localhost:3000/api/admin/coupons" \
-        -H "Content-Type: application/json" \
-        -H "Authorization: Bearer <admin_token>" \
-        -H "X-Student-Id: 23127125" \
-        -d '{"code": "OVER200", "type": "percent", "discount_value": 200, "min_order_amount": -50000, "expired_at": "invalid_date", "max_uses_per_user": -5}'
-   ```
-2. Quan sát phản hồi của server.
-
-### Kết quả Thực tế (Actual Result):
-- **HTTP Status Code:** `200 OK`
-- **Response Body:** `{"message": "Coupon created", "id": 7}`
-
-### Kết quả Mong đợi (Expected Result):
-- **HTTP Status Code:** `400 Bad Request`
-- **Response Body:**
-  ```json
-  {
-    "status": 400,
-    "error": "Validation error: discount_value for percent type must be between 1 and 100, min_order_amount must be >= 0, max_uses_per_user must be >= 1, and expired_at must be a valid date."
-  }
-  ```
-
-### Phân tích nguyên nhân gốc rễ (Root Cause) & Đề xuất khắc phục (Fix):
-- **Nguyên nhân:** Thiếu tầng kiểm thực dữ liệu (Joi / express-validator / Zod) ở đầu route `POST /api/admin/coupons`.
-- **Cách khắc phục:** Thêm kiểm tra validation trước khi thực hiện câu lệnh SQL `INSERT INTO coupons`.
-
+### 🔹 Bug #9: `BUG_FR17_03` — Thiếu Input Validation khi Tạo Mã Giảm Giá Admin
+- **Endpoint:** `POST /api/admin/coupons`
+- **Severity:** `Medium / Data Integrity & Input Validation`
+- **Mô tả ngắn:** Chấp nhận giảm giá > 100% (200%), ngưỡng đơn âm (-50k), lượt dùng âm (-5) và ngày hết hạn sai format (`"invalid_date"`).
+- **Root Cause & Fix:** Thiếu tầng kiểm thực schema body (Joi/Zod/express-validator) trước khi thực hiện câu lệnh `INSERT INTO coupons`.
+- 🔗 **GitHub Issue chi tiết:** [Issue #10](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/10)

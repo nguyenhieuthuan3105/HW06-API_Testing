@@ -19,7 +19,7 @@
 | 1 | **API 1 (Pool A - FR-06 Product Detail):** Full Pipeline (Generate ≥35, Audit, Extend ≥5, Newman, Bugs) | 30 | 30 | 44 TCs (39 AI + 5 Human), Bắt 3 Bugs SUT, Newman Report HTML Extra |
 | 2 | **API 2 (Pool B - FR-09 Apply Coupon):** Full Pipeline (Generate ≥35, Audit, Extend ≥5, Newman, Bugs) | 30 | 30 | 45 TCs (40 AI + 5 Human), Data-Driven CSV 10 Iterations, Bắt 3 Bugs SUT |
 | 3 | **API 3 (Pool C - FR-17 Admin Coupon CRUD):** Full Pipeline (Generate ≥35, Audit, Extend ≥5, Newman, Bugs) | 30 | 30 | 45 TCs (40 AI + 5 Human), CRUD 6 bước, Bắt 3 Bugs SUT (RBAC, SQLite Leak, Input) |
-| 4 | **Agent Skill (AI-driven test generator - G9.5 Create):** Sơ đồ, Pseudocode, Python code, Demo | 10 | 10 | Code Python `api_test_generator.py`, Sơ đồ Mermaid, Báo cáo tự động hóa |
+| 4 | **Agent Skill (AI-driven test generator - G9.5 Create):** Sơ đồ, Pseudocode, Python code, Demo | 10 | 10 | SKILL.md, Sơ đồ Mermaid, Báo cáo tự động hóa |
 | **Tổng** | **Toàn bộ bài tập HW06** | **100** | **100** | Đầy đủ 100% tài liệu, 134 TCs, 9 Bugs, CI/CD Actions, AI Audit & Critique |
 
 ---

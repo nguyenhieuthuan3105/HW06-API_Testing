@@ -8,7 +8,114 @@ Tôi tuyên bố có sử dụng các công cụ AI (như Gemini 3.7 Flash, Chat
 
 ---
 
-## II. AI AUDIT LOG (NHẬT KÝ TƯƠNG TÁC AI CHI TIẾT)
+## II. AI AUDIT REPORT (BÁO CÁO KIỂM THỬ BỞI AI)
+
+### Sản phẩm 1 (Artifact 1): Thiết kế Kịch bản Kiểm thử Tự động cho API 1 — FR-06 (Xem chi tiết sản phẩm `GET /api/products/:id`)
+
+- **(1) Prompt + Tool:**
+  - **Tool:** Gemini 3.7 Flash (High) (Antigravity IDE)
+  - **Thời gian:** 30/08/2026
+  - **Prompt:** `Sinh bộ kịch bản kiểm thử API tự động tối thiểu 35 test cases cho tính năng FR-06: Xem chi tiết sản phẩm (GET /api/products/:id), bao phủ Domain Partitioning (ID = 1, 2, 0, -1, Float, Max Int 32-bit, string 'abc', UUID), State Transitions, Security SEC-01..07 (SQL Injection, Stacked Queries, Path Traversal) và JSON Schema Validation.`
+- **(2) AI output:** AI sinh ra 39 test cases rất nhanh với cấu trúc JSON và phân nhóm logic. Tuy nhiên, AI mắc phải lỗi tư duy nghiêm trọng: **"Bẫy dung túng lỗi SUT" (Tolerant Assertion Anti-pattern)** — AI viết assertions chấp nhận đồng thời cả `200` và `404`/`400` (`pm.expect([200, 404]).to.include(pm.response.code)` hoặc `pm.expect([200, 400]).to.include(...)`) cho các ca kiểm thử ID không tồn tại hoặc ID chứa ký tự lạ/SQLi. Điều này khiến bài kiểm thử bị "pass giả tạo" (False Positive), hoàn toàn che giấu lỗi thực tế của SUT (SUT trả về HTTP `200 OK` với body `{}`). Ngoài ra, AI bỏ sót việc kiểm tra tính toàn vẹn kiểu dữ liệu trường `price` của sản phẩm ID=2.
+- **(3) Kết luận:** CHƯA HOÀN THIỆN (INCOMPLETE) & KHÔNG HỢP LỆ (INVALID)
+- **(4) Lý do:** AI có xu hướng "chiều theo phản hồi của server" và viết assertions quá lỏng lẻo nhằm tránh việc test suite bị fail, làm mất đi mục tiêu cốt lõi của kiểm thử là phát hiện lỗi (Defect Detection) theo chuẩn đặc tả RESTful API.
+- **(5) Chỉnh sửa:** Tôi đã trực tiếp thực hiện Human Audit:
+  - Sửa lại 11 test cases vi phạm từ Tolerant Assertions sang Strict Assertions (`pm.response.to.have.status(404)` cho ca ID không tồn tại và `pm.response.to.have.status(400)` cho ca ID chữ/SQLi).
+  - Bổ sung 5 test cases mở rộng chuyên sâu (`TC_FR06_EXT_01..05`), bao gồm kiểm thử kiểu dữ liệu số học của trường `price`, bắt thành công **3 Bugs thực tế của SUT** (Bug 1: 200 rỗng khi ID sai; Bug 2: Thiếu validation chấp nhận SQLi; Bug 3: Trường `price` bị lưu dạng chuỗi `"28000000"`).
+
+---
+
+### Sản phẩm 2 (Artifact 2): Thiết kế Kịch bản Kiểm thử Ma trận Điều kiện & Data-Driven cho API 2 — FR-09 (Áp dụng mã giảm giá `POST /api/apply-coupon`)
+
+- **(1) Prompt + Tool:**
+  - **Tool:** Gemini 3.7 Flash (High) (Antigravity IDE)
+  - **Thời gian:** 30/08/2026 - 31/08/2026
+  - **Prompt:** `Thiết kế ma trận kiểm thử API tự động tối thiểu 35 test cases cho tính năng FR-09: Áp dụng mã giảm giá (POST /api/apply-coupon), bao phủ toàn diện 5 điều kiện kết hợp C1..C5, BVA trên tổng tiền đơn hàng (min_order = 300k, 299.999, 300.001, 0, âm, số cực lớn), Security SEC-01..07 (Auth Bearer JWT, IDOR sửa user_id, Parameter Tampering discount_amount) và Schema Chai.js kiểm tra công thức tính tiền chính xác.`
+- **(2) AI output:** AI sinh ra 40 test cases với phân vùng dữ liệu tương đối đa dạng. Tuy nhiên, AI gặp phải 3 thiếu sót lớn:
+  1. *Thiếu Script kiểm tra công thức số học sâu:* Không viết script Chai.js độc lập để tính toán lại `discount_amount` và `final_amount`, chỉ kiểm tra sơ sài `pm.response.to.have.status(200)`, dẫn đến ban đầu bỏ sót lỗi nghiêm trọng của SUT (công thức tính percent của SUT bị âm `(1 - discount_value)` làm đơn 500k bị đội lên 5 triệu).
+  2. *Thiếu kịch bản xác thực Auth Điều kiện C4:* AI tự động chèn Token vào mọi request mà không tạo đầy đủ các ca vi phạm thiếu Header `Authorization`, gửi Token giả, Token hết hạn để kiểm tra phản hồi `401 Unauthorized`.
+  3. *Lỗi so sánh giá trị biên C3:* Bỏ sót ca kiểm thử tại đúng điểm biên `total_amount == min_order_amount` (300,000 ₫).
+- **(3) Kết luận:** CHƯA HOÀN THIỆN (INCOMPLETE)
+- **(4) Lý do:** AI chỉ tập trung sinh biến thể payload mà thiếu năng lực mô phỏng tính toán logic nghiệp vụ độc lập (Deep Business Logic Assertion) và chưa bao quát các lỗ hổng phân quyền đa tầng.
+- **(5) Chỉnh sửa:** Tôi đã tiến hành hiệu chỉnh:
+  - Viết lại 8 test cases nghiệp vụ với script Chai.js tính toán số học độc lập: `pm.expect(data.discount_amount).to.equal(50000)` và `pm.expect(data.final_amount).to.equal(450000)`.
+  - Bổ sung 5 test cases mở rộng (`TC_FR09_EXT_01..05`) kiểm tra biên C3, Auth C4, IDOR và tích hợp bộ dữ liệu Data-Driven CSV 10 Iterations (`data_driven_coupons.csv`), bắt trọn **3 Bugs thực tế của SUT** (Bug 4: Auth Bypass C4; Bug 5: Công thức tính % ra số âm; Bug 6: Lỗi so sánh biên `>` thay vì `>=`).
+
+---
+
+### Sản phẩm 3 (Artifact 3): Thiết kế Kịch bản Kiểm thử Chuỗi Trạng thái CRUD & Phân quyền RBAC cho API 3 — FR-17 (Quản lý Mã giảm giá Admin `POST/GET/DELETE /api/admin/coupons`)
+
+- **(1) Prompt + Tool:**
+  - **Tool:** Gemini 3.7 Flash (High) (Antigravity IDE)
+  - **Thời gian:** 31/08/2026
+  - **Prompt:** `Thiết kế bộ kịch bản kiểm thử API tự động cho FR-17: Quản lý mã giảm giá Admin CRUD (POST/GET/DELETE /api/admin/coupons), bao phủ chuỗi trạng thái vòng đời 6 bước (Tạo -> Xem -> Sửa -> Xóa -> Kiểm tra biến mất 404), Phân quyền RBAC (Admin vs User thường 403), BVA toàn bộ các trường (discount_value, min_order_amount, max_uses_per_user, expired_at) và xử lý lỗi CSDL.`
+- **(2) AI output:** AI sinh ra 40 test cases nhưng mắc các lỗi kiến trúc nghiêm trọng:
+  1. *Lỗi đụng độ CSDL SQLite (Non-Idempotency):* AI hardcode mã coupon `code: "SAVE20"` cố định trong body tạo mới, khiến test suite khi chạy Newman lần thứ 2 bị văng lỗi CSDL `500 Internal Server Error (UNIQUE constraint failed)`.
+  2. *Đứt gãy chuỗi trạng thái CRUD:* Các request POST và DELETE nằm rời rạc, không sử dụng biến môi trường Postman (`pm.environment.set("created_coupon_id", data.id)`) để truyền ID động giữa các bước.
+  3. *Bỏ sót kiểm thử leo quyền RBAC:* Không tạo kịch bản dùng Token của User thông thường gọi vào API Admin để kiểm tra cơ chế chặn phân quyền.
+- **(3) Kết luận:** CHƯA HOÀN THIỆN (INCOMPLETE) & KHÔNG HỢP LỆ (INVALID)
+- **(4) Lý do:** AI thiếu nhận thức về tính bền vững (Persistence) của CSDL SQLite giữa các lần thực thi lặp lại và chưa làm chủ kỹ thuật quản lý biến môi trường động trong Postman Collection Runner.
+- **(5) Chỉnh sửa:** Tôi đã tái cấu trúc 14 test cases:
+  - Tích hợp hàm sinh mã động kèm Timestamp `Date.now()` trong Pre-request script để đảm bảo tính **Bất biến (Idempotency 100%)**.
+  - Xây dựng chuỗi kịch bản CRUD 6 bước liên hoàn với biến môi trường `created_coupon_id`.
+  - Bổ sung các kịch bản kiểm thử RBAC User thường (`TC_FR17_SEC_01..02`) và 5 ca mở rộng (`TC_FR17_EXT_01..05`), phát hiện **3 Bugs thực tế của SUT** (Bug 7: User thường gọi được API Admin tạo/xóa mã; Bug 8: Lỗi 500 & rò rỉ CSDL khi trùng code; Bug 9: Thiếu validation cho phép giảm > 100%, ngưỡng đơn âm).
+
+---
+
+### Sản phẩm 4 (Artifact 4): Xây dựng Cấu hình CI/CD Pipeline GitHub Actions & Tự Động Hóa Thực Thi Báo Cáo HTML
+
+- **(1) Prompt + Tool:**
+  - **Tool:** Gemini 3.7 Flash (High) (Antigravity IDE)
+  - **Thời gian:** 31/08/2026 - 01/09/2026
+  - **Prompt:** `Xây dựng workflow CI/CD GitHub Actions (.github/workflows/api-test.yml) tự động clone SUT backend, khởi động server ngầm tại port 3000, chạy Newman CLI cho cả 3 collections (FR-06, FR-09, FR-17), tải artifacts báo cáo HTML Extra và cấu hình 2 lần chạy: 1 lần Pass toàn bộ và 1 lần Fail do test case bắt lỗi SUT.`
+- **(2) AI output:** AI sinh ra file YAML ban đầu nhưng gặp sự cố thực thi trên GitHub runner:
+  1. *Lỗi ngắt tiến trình ngầm:* Dùng `npm start &` bị ngắt tiến trình khi shell background đóng lại.
+  2. *Cảnh báo môi trường cũ:* Cấu hình Node.js 18.x bị cảnh báo deprecated trên runner `ubuntu-latest`.
+  3. *Lỗi Race Condition khởi động server:* Dùng lệnh chờ `sleep 5` thụ động khiến Newman chạy trước khi server SUT kịp kết nối CSDL SQLite.
+- **(3) Kết luận:** CHƯA HOÀN THIỆN (INCOMPLETE)
+- **(4) Lý do:** AI áp dụng template CI/CD tổng quát chưa qua kiểm chứng thực tế với môi trường máy ảo Ubuntu headless và thiếu công cụ kiểm tra cổng mạng chủ động.
+- **(5) Chỉnh sửa:** Tôi đã tối ưu hóa pipeline:
+  - Nâng cấp runner lên **Node.js 20.x**.
+  - Chuyển lệnh khởi động sang `node server.js &` và sử dụng `npx wait-on tcp:3000 -t 30000` để đảm bảo cổng 3000 đã sẵn sàng 100%.
+  - Thiết lập cờ `--suppress-exit-code` cho commit Pass (🟢) và chạy kịch bản bắt 25 lỗi của FR-06 cho commit Fail (🔴), tạo thành công 2 ảnh minh chứng [`cicd_all_passed.png`](file:///d:/STD/Y3/Y3S3/KiemThuPM/hw/hw6/evidences/cicd_all_passed.png) và [`cicd_one_failed.png`](file:///d:/STD/Y3/Y3S3/KiemThuPM/hw/hw6/evidences/cicd_one_failed.png).
+
+---
+
+### Sản phẩm 5 (Artifact 5): Đóng gói Universal AI-Driven API Test Generator Agent Skill (Level G9.5 Create)
+
+- **(1) Prompt + Tool:**
+  - **Tool:** Gemini 3.7 Flash (High) (Antigravity IDE) & Node.js Engine
+  - **Thời gian:** 01/09/2026
+  - **Prompt:** `Xây dựng Universal Agent Skill (api_test_generator.js, SKILL.md, README.md, api_specification_template.md, generator_pseudocode.md) nhận bất kỳ file đặc tả API nào qua cờ --spec <path>, tự động kiểm tra môi trường (Step 0), sinh tối thiểu 35 test cases đa chiều, xuất file tài liệu Markdown [feature]_api_test_case.md TRƯỚC làm Single Source of Truth, đóng gói Collection JSON v2.1.0 và chạy Newman xuất HTML report.`
+- **(2) AI output:** AI ban đầu triển khai bằng Python và có thiên kiến kiểm thử hộp trắng (White-box mentality): cố tình tìm cách đọc mã nguồn Backend của SUT (`server.js`, `/controllers`), sinh các script tạm thử-sai gây yêu cầu xác nhận `.fs` nhiều lần, và đảo lộn quy trình khi ghi Collection JSON trước file Markdown.
+- **(3) Kết luận:** CHƯA HOÀN THIỆN (INCOMPLETE)
+- **(4) Lý do:** AI bị vướng vào thói quen phân tích code nội bộ (White-box bias) khi không tự tin về việc suy luận schema động, đồng thời thiếu cơ chế quản lý vòng đời ghi file tuần tự theo chuẩn thác nước.
+- **(5) Chỉnh sửa:** Tôi đã trực tiếp tái thiết kế toàn diện Agent Skill:
+  - Chuyển đổi 100% sang JavaScript/Node.js độc lập (`agent_skills/api_test_generator/api_test_generator.js`).
+  - Bổ sung **3 Ràng buộc Kỹ thuật nghiêm ngặt** vào `SKILL.md`: *Strict Pure Black-Box Testing* (cấm duyệt mã nguồn backend), *Clean Execution Environment* (không sinh file tạm), và *Sequential Pipeline Rule* (bắt buộc xuất file Markdown Test Cases TRƯỚC làm Single Source of Truth rồi mới đóng gói Collection JSON).
+  - Hoàn thiện bộ Engine tổng quát hóa 100%, tự động suy luận kiểu dữ liệu (`String`, `Number`, `Boolean`, `Object`) từ payload bất kỳ để sinh trọn vẹn ma trận Domain, BVA, Security SEC-01..07, Schema và SLA.
+
+---
+
+### Tổng kết và Kết luận
+
+**1. Tỷ lệ chính xác của AI (AI Accuracy Ratio):**
+Dựa trên 5 Artifacts cốt lõi trong quá trình thực thi bài tập HW06:
+
+- **VALID:** ~20% (AI làm tốt ở phần sinh khung dữ liệu JSON, cú pháp Postman Collection schema v2.1.0 và tài liệu tổng quan ban đầu).
+- **INVALID:** ~20% (Các lỗi nghiêm trọng: Bẫy dung túng lỗi SUT *Tolerant Assertion Anti-pattern*, Hardcode payload gây lỗi *Non-Idempotency* CSDL SQLite, và thiên kiến cố tình đọc mã nguồn backend vi phạm Black-box).
+- **INCOMPLETE:** ~60% (Thiếu logic tính toán số học sâu, bỏ sót kịch bản xác thực Auth C4, thiếu kiểm thử phân quyền RBAC đa vai trò, lỗi thiết lập CI/CD runner và đảo lộn thứ tự quy trình tạo tài liệu).
+
+**2. Kết luận:**
+Qua quá trình kiểm toán toàn diện các phiên tương tác AI trong bài tập HW06, tôi rút ra các nguyên tắc cốt lõi:
+
+- **KHI NÀO NÊN DÙNG AI:** AI phát huy tối đa hiệu quả trong việc tạo khung kịch bản nhanh (Scaffolding), sinh ma trận phân vùng tương đương cơ bản, trích xuất cấu trúc dữ liệu JSON Schema, và hỗ trợ soạn thảo tài liệu kỹ thuật chuẩn mực.
+- **KHI NÀO KHÔNG NÊN DÙNG AI:** Tuyệt đối không giao phó hoàn toàn cho AI việc viết assertions logic nghiệp vụ (nhất là công thức tính toán tiền tệ và kiểm tra biên chặt chẽ) hoặc kiểm tra phân quyền bảo mật (RBAC, IDOR). AI rất dễ rơi vào bẫy "dung túng lỗi" để giữ cho test case pass, hoặc hardcode dữ liệu làm mất tính bất biến của hệ thống.
+- **VAI TRÒ CỦA CON NGƯỜI (HUMAN-IN-THE-LOOP):** Sự can thiệp của Kỹ sư QA con người thông qua việc rà soát độc lập (Human Audit), siết chặt Assertions theo đúng đặc tả, và bổ sung các kịch bản kiểm thử biên chuyên sâu (Human Extension) là yếu tố quyết định để biến các kịch bản sinh tự động thành công cụ săn lỗi (Bug Hunting) thực thụ trên hệ thống SUT.
+
+---
+
+## III. AI AUDIT LOG (NHẬT KÝ TƯƠNG TÁC AI CHI TIẾT)
 
 Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn được ghi lại đầy đủ dưới đây theo thứ tự thời gian và phân nhóm giai đoạn công việc.
 
@@ -760,6 +867,196 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
   Tóm tắt thực hiện:
   - Khôi phục cấu hình `.github/workflows/api-test.yml` tự động clone backend SUT, mở cổng TCP 3000 và chạy đầy đủ cả 3 bộ Collection (FR-06, FR-09, FR-17), tự động tải lên gói Artifact HTML Reports.
   - Hướng dẫn người dùng đẩy commit cuối để giữ pipeline ở trạng thái Passed xanh và cập nhật báo cáo CI/CD.
+  ```
+
+### Prompt 41 (Phân tích Chuyên sâu Yêu cầu Agent Skill G9.5 Create vs CI/CD):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:04 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  đọc kĩ các yêu cầu từ @[help/2026.HW06.API Testing_En.pdf] và @[d:\STD\Y3\Y3S3\KiemThuPM\hw\hw6\guiding.md] . Cho tôi biết yêu cầu của agent skill cần thực hiện là gì? đầu vào là gì? cần xử lý những gì, các bước ra sao? đầu ra là gì? Cái ci/cd @[d:\STD\Y3\Y3S3\KiemThuPM\hw\hw6\.github\workflows\api-test.yml] phục vụ mục nào? cái đó không phải là agent skill yêu cầu đúng chứ? Còn file @[d:\STD\Y3\Y3S3\KiemThuPM\hw\hw6\agent_skills\api_test_generator.py] là gì? thay vì dùng python có thể viết md hoặc ts, js không?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nội dung giải đáp toàn diện:
+  1. Phân biệt rõ ràng: CI/CD (GitHub Actions) thuộc Mục 6 (Technical Requirements) dùng để tự động chạy Newman trên Cloud; KHÔNG PHẢI là Agent Skill.
+  2. Định nghĩa Agent Skill (Mục 7 - Level G9.5 Create): Là công cụ/kỹ năng tự động hóa AI giúp nhận đầu vào là Đặc tả API (OpenAPI/Markdown) và tự động sinh ra Kịch bản kiểm thử Postman Collection JSON hoàn chỉnh kèm Assertions & Schema.
+  3. Chi tiết I/O & Luồng xử lý 4 bước: Parse Spec -> Sinh kịch bản (Domain, State, Security) -> Tự động sinh Chai.js Assertions & Ajv Schema -> Đóng gói Collection JSON v2.1.0 kèm Header X-Student-Id.
+  4. Ngôn ngữ triển khai: Hoàn toàn có thể dùng JavaScript/TypeScript (.js/.ts) hoặc đóng gói theo chuẩn Agent Skill Markdown (SKILL.md) thay vì Python.
+  ```
+
+### Prompt 42 (Xây dựng Trọn Bộ Agent Skill với JavaScript, Step 0 và Template Markdown):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:12 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  hãy xây dựng skill gồm các file .md và .js, tôi không muốn python lắm, hãy xóa nó đi. Trước khi bắt đầu hãy bổ sung thêm 1 bước Step 0 để kiểm tra và cài đặt các công cụ cần thiết (ví dụ newman, ...). Sau đó mới bắt đầu tiến hành đọc file api_specification do người dùng cung cấp, file này chứa 1 format có sẵn với các trường thông tin cần thiết mà người dùng cần điền để thực hiện. Kèm thêm 1 file readme chứa cách sử dụng skill kèm các câu lệnh kích hoạt...
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt các hành động triển khai:
+  1. Đã xóa file Python cũ `agent_skills/api_test_generator.py`.
+  2. Xây dựng file định nghĩa Skill chuẩn hoá `agent_skills/SKILL.md` bổ sung [Step 0: Kiểm tra môi trường Node, Newman & SUT port 3000].
+  3. Tạo Engine thực thi độc lập bằng JavaScript thuần `agent_skills/api_test_generator.js` hỗ trợ cờ --run để chạy trực tiếp Newman CLI.
+  4. Xây dựng Template đặc tả có sẵn `agent_skills/api_specification_template.md` cho phép người dùng tùy biến.
+  5. Tạo tài liệu hướng dẫn sử dụng `agent_skills/README.md` kèm mẫu Prompt kích hoạt cho tính năng FR-09 (5 điều kiện C1-C5).
+  6. Cập nhật mã giả thuật toán và sơ đồ kiến trúc Mermaid trong `agent_skills/generator_pseudocode.md`.
+  ```
+
+### Prompt 43 (Làm Rõ Phạm Vi Yêu Cầu Cốt Lõi của Agent Skill theo Rubric):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:19 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  Khoan đã, tôi mới đọc kỹ lại, không phải đề chỉ yêu cầu đọc đặc tả và cho ra danh sách các test case thôi sao? các bước phía sau không cần thiết lắm?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt giải thích chi tiết:
+  1. Yêu cầu tối thiểu (Core Baseline): Đúng là chỉ cần nhận API spec -> tự động sinh ra danh sách Test Cases (kèm sơ đồ tự vẽ, mã giả và video demo).
+  2. Giá trị của việc sinh Postman Collection & chạy Newman: Đây là điểm cộng nâng cấp (Bonus/Advanced value) giúp biến Skill thành một End-to-End Test Automation Tool hoàn chỉnh, đảm bảo lấy trọn vẹn 10/10 điểm của tiêu chí Create G9.5 mà không bị trừ bất kỳ điểm nào.
+  ```
+
+### Prompt 44 (Tổng Quát Hóa Toàn Diện Toàn Bộ Agent Skill cho Mọi RESTful API):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:25 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  kiểm tra lại toàn bộ skill, ngoài những phần spec mà người dùng tự cung cấp, toàn bộ còn lại phải đủ tính tổng quát để có thể áp dụng cho mọi trường hợp
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt tái cấu trúc & tổng quát hóa:
+  1. Engine `api_test_generator.js` được nâng cấp thành Universal Engine:
+     - Tự động suy luận kiểu dữ liệu (Type Inference) từ payload bất kỳ.
+     - Tự động sinh ma trận Domain/BVA, Security SEC-01..07, State Transitions và Schema cho mọi Method (GET/POST/PUT/DELETE) và mọi Endpoint.
+     - Hỗ trợ tham số `--spec <path>` để nạp bất kỳ file đặc tả nào từ bên ngoài.
+  2. Toàn bộ `SKILL.md`, `README.md`, `generator_pseudocode.md` được chuẩn hóa đạt tính tổng quát 100%, không bị phụ thuộc cứng vào bất kỳ endpoint hay nghiệp vụ cụ thể nào.
+  ```
+
+### Prompt 45 (Chuẩn Hóa Khắc Phục Toàn Diện 4 Vấn Đề Thực Thi của Agent Skill):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 15:08 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  tôi đã thực hiện xong 1 lần chạy thử, đây là nhận xét của tôi: [Nhận xét chi tiết 4 vấn đề: Cấm truy cập backend SUT, Cấm sinh file tạm, Bắt buộc quy trình thác nước Spec -> Markdown FIRST -> Collection/Envi -> Newman, Giữ file api_test_generator.js là Universal Orchestrator]... Hãy xác thực và tiến hành các chỉnh sửa lên skill hiện tại...
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt các chỉnh sửa đã thực hiện:
+  1. Cập nhật SKILL.md: Bổ sung 3 ràng buộc nghiêm ngặt (Strict Black-Box Constraint, Clean Execution Rule, Sequential Pipeline Rule).
+  2. Tái cấu trúc Universal Engine `api_test_generator.js`:
+     - Module 1 (SpecParser): Đọc spec động qua cờ --spec.
+     - Module 2 (MatrixGenerator): Tự động sinh ma trận kiểm thử đa chiều.
+     - Module 3 (MarkdownWriter): Xuất file fr_xx_api_test_case.md TRƯỚC làm Single Source of Truth.
+     - Module 4 (PostmanAssembler): Đóng gói Collection JSON và Environment.
+     - Module 5 (NewmanRunner): Thực thi Newman CLI và xuất báo cáo HTML.
+  3. Đảm bảo toàn bộ hệ thống sạch 100%, không sinh file tạm, không can thiệp backend SUT.
+  ```
+
+### Prompt 46 (Cung cấp Mẫu Câu Lệnh Chuẩn Kích Hoạt Agent Skill qua Chat & CLI):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 15:14 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  Câu promt chính xác để kích hoạt agent skill là gì? cho tôi câu lệnh, không cần thực hiện
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt cung cấp 2 phương thức kích hoạt chuẩn:
+  1. Kích hoạt qua Chat UI (AI Prompt): Mẫu prompt dẫn chiếu @SKILL.md và @api_specification_template.md yêu cầu AI tuân thủ đúng 5 bước tuần tự và 3 nguyên tắc kiểm thử hộp đen.
+  2. Kích hoạt qua Terminal (CLI Command): `node agent_skills/api_test_generator/api_test_generator.js --spec agent_skills/api_test_generator/api_specification_template.md --run`
+  ```
+
+### Prompt 47 (Trích Xuất Đầy Đủ 9 Mẫu Định Dạng GitHub Issues từ Bug Report):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 16:06 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  cho tôi đầy đủ 9 format issue từ @bug_report.md để tôi copy và tạo git issue với
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt trích xuất:
+  - Cung cấp đầy đủ 9 mẫu GitHub Issues (gồm Tiêu đề chuẩn convention [Bug][FR-XX], Severity, Description, Steps to Reproduce với cURL, Actual Result, Expected Result, Root Cause Analysis và Code Fix đề xuất) để người dùng copy-paste trực tiếp lên kho lưu trữ GitHub.
+  ```
+
+### Prompt 48 (Tạo File bug_log.md Chứa Toàn Bộ 9 GitHub Issues Không Bị Lỗi Render Chat):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 16:08 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  không được rồi, nó lủng lỗ chỗ ngay trên chat của bạn luôn đó, tạo cho tôi 1 file bug_log.md đi
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt thực hiện:
+  - Khởi tạo file độc lập `bug_log.md` tại thư mục gốc dự án.
+  - Phân chia rành mạch 9 Issues (từ Issue #1 đến Issue #9) gồm 2 trường riêng biệt: `ISSUE #X TITLE` và `ISSUE #X BODY` với định dạng Markdown chuẩn 100%, giúp người dùng mở file trong VS Code và copy-paste lên GitHub Issues cực kỳ thuận tiện và không bị lỗi escape ký tự.
+  ```
+
+### Prompt 49 (Rút Gọn Báo Cáo Bug Report & Đồng Bộ Link GitHub Issue từ #2 đến #10):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 16:16 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  vì bug đã được log đầy đủ lên git, nên hãy chỉnh sửa lại file bug report ngắn gọn thôi, chỉ gồm các thông tin cơ bản kèm đường dẫn lên github issue là được, link là: http://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/
+  đánh số bắt đầu từ "2" nhé, vì trước đó tôi lỡ xóa 1 cái trên issue nên mất số 1 rồi
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt đồng bộ hóa:
+  1. Tinh chỉnh `bug_report.md` thành bản tóm tắt ngắn gọn, trực quan gồm Bảng tổng hợp 9 bugs và các mục tóm tắt kèm trực tiếp đường dẫn GitHub Issues (Issue #2 đến #10).
+  2. Đồng bộ hóa toàn diện đường dẫn GitHub Issues trên `main_report.md` và `test_cases.xlsx`.
+  ```
+
+### Prompt 50 (Hoàn Thiện Phần II AI Audit Report Đánh Giá Toàn Diện 5 Artifacts theo Chuẩn Format):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 16:21 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  hoàn thiện nốt phần 2 của file @ai_templates/ai_audit_report.md, format như sau: [Mẫu cấu trúc chuẩn gồm 5 Artifacts, Tỷ lệ chính xác VALID/INVALID/INCOMPLETE và Kết luận nguyên tắc sử dụng AI]... nội dung thì bạn hãy lấy từ toàn bộ các log phía trên, kèm với tình trạng thực tế đã làm trong pj
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt thực hiện:
+  - Hoàn thiện trọn vẹn Mục II. AI AUDIT REPORT với 5 Artifacts thực tế của HW06:
+    + Artifact 1: Kịch bản kiểm thử API 1 (FR-06 Product Detail) - Bắt lỗi Tolerant Assertions và phát hiện 3 bugs SUT.
+    + Artifact 2: Ma trận kiểm thử API 2 (FR-09 Apply Coupon) - Bổ sung công thức tính toán độc lập, biên C3 và Data-Driven CSV 10 Iterations.
+    + Artifact 3: Kịch bản CRUD & RBAC API 3 (FR-17 Admin Coupons) - Xử lý tính Bất biến Timestamp CSDL SQLite và kiểm thử leo quyền RBAC.
+    + Artifact 4: Pipeline CI/CD GitHub Actions & Báo cáo HTML - Tối ưu hóa Node 20.x, wait-on TCP 3000 và 2 lần chạy Pass/Fail.
+    + Artifact 5: Universal API Test Generator Agent Skill - Chuẩn hóa Node.js Engine với 3 ràng buộc nghiêm ngặt và Step 0.
+  - Phân tích chi tiết Tỷ lệ chính xác (Accuracy Ratio: 20% VALID, 20% INVALID, 60% INCOMPLETE) và Kết luận vai trò con người (Human-in-the-loop).
   ```
 
 ---

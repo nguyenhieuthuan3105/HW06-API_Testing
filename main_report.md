@@ -7,8 +7,8 @@
 - **Mã số sinh viên (MSSV):** **`23127125`**
 - **Lớp học phần:** Kiểm thử phần mềm - 23KTPM4
 - **Giảng viên hướng dẫn:** TS. Lâm Quang Vũ / TS. Trần Duy Hoàng / ThS. Trần Thị Bích Hạnh / ThS. Trương Phước Lộc / ThS. Hồ Tuấn Thanh
-- **Kho lưu trữ GitHub (Public Repository):** `https://github.com/nguyenhieuthuan3105/HW06-API_Testing.git`
-- **Video Demo Agent Skill (YouTube Unlisted):** `https://youtu.be/placeholder-hw06-demo`
+- **Kho lưu trữ GitHub (Public Repository):** [Public Repository](https://github.com/nguyenhieuthuan3105/HW06-API_Testing.git)
+- **Video Demo Agent Skill (YouTube Unlisted):** [YouTube Unlisted](https://youtu.be/t4p1SLNhBoY)
 
 ---
 
@@ -37,7 +37,7 @@
 | **1** | **API 1 (Pool A - FR-06 Product Detail):** Full Pipeline (Generate $\ge 35$, Audit, Extend $\ge 5$, Newman, Bugs) | 30 | **30** | 44 TCs (39 AI + 5 Human), Bắt 3 Bugs SUT, Báo cáo HTML Newman đầy đủ. |
 | **2** | **API 2 (Pool B - FR-09 Apply Coupon):** Full Pipeline (Generate $\ge 35$, Audit, Extend $\ge 5$, Newman, Bugs) | 30 | **30** | 45 TCs (40 AI + 5 Human), Data-Driven CSV 10 Iterations, Bắt 3 Bugs SUT. |
 | **3** | **API 3 (Pool C - FR-17 Admin Coupon CRUD):** Full Pipeline (Generate $\ge 35$, Audit, Extend $\ge 5$, Newman, Bugs) | 30 | **30** | 45 TCs (40 AI + 5 Human), Vòng đời CRUD 6 bước, Bắt 3 Bugs SUT (RBAC, SQLite Leak, Validation). |
-| **4** | **Agent Skill (AI-driven test generator - G9.5 Create):** Sơ đồ, Pseudocode, Python code, Video demo | 10 | **10** | Mã Python `api_test_generator.py`, Sơ đồ Mermaid, Báo cáo tự động hóa. |
+| **4** | **Agent Skill (AI-driven test generator - G9.5 Create):** Sơ đồ, Pseudocode, Python code, Video demo | 10 | **10** | SKILL.md, Sơ đồ Mermaid, Báo cáo tự động hóa. |
 | **TỔNG** | **Toàn bộ bài tập HW06** | **100** | **100** | **Đạt 100/100 theo đầy đủ các tiêu chuẩn đề bài.** |
 
 ---
@@ -54,8 +54,8 @@
 | **Số Test Cases mở rộng (Added/Extended)** | 5 | 5 | 5 | **15** |
 | **Tổng Test Cases thực thi (Executed)** | **44** | **45** | **45** | **134 Test Cases** |
 | **Số Test Assertions Đạt (Passed)** | 23 | 39 | 35 | **97 (72.4%)** |
-| **Số Test Assertions Thất bại (Failed)** | 25 | 12 | 19 | **56 (Bắt đúng Bug SUT)** |
-| **Số lỗi thực tế phát hiện (Bugs Found)** | **3** | **3** | **3** | **9 Lỗi Thực Tế** |
+| **Số Test Assertions Thất bại (Failed)** | 25 | 12 | 19 | **56** |
+| **Số lỗi thực tế phát hiện (Bugs Found)** | **3** | **3** | **3** | **9 Lỗi** |
 
 ---
 
@@ -124,17 +124,17 @@ Trong quá trình kiểm duyệt các ca kiểm thử do AI sinh ra, chuyên gia
 
 ### 2. Danh sách 9 Lỗi Thực Tế Phát Hiện trên Hệ Thống SUT EShop
 
-| Mã Bug | Thuộc Feature | Mức độ (Severity) | Tên Lỗi Kỹ Thuật | Phân tích Nguyên nhân & Cách khắc phục |
-| :---: | :---: | :---: | :--- | :--- |
-| **`BUG_FR06_01`** | FR-06 | Medium (REST Compliance) | **Endpoint trả về `200 OK` kèm body rỗng `{}` khi ID không tồn tại hoặc đã bị xóa** | Trong `server.js`, controller không check `if (!product)` mà trả về `res.json(product || {})`. Cần sửa thành `if (!product) return res.status(404).json({ error: "Product not found" })`. |
-| **`BUG_FR06_02`** | FR-06 | High (SEC-01 / SEC-07) | **Thiếu Input Validation trên Path `:id`, chấp nhận SQLi và chuỗi rác** | Không kiểm tra `Number.isInteger(id) && id > 0`. Cần thêm validation middleware từ chối `400 Bad Request`. |
-| **`BUG_FR06_03`** | FR-06 | Medium (Schema Mismatch) | **Sai lệch kiểu dữ liệu trường `price` của sản phẩm ID=2 (String thay vì Number)** | Seed CSDL lưu `'28000000'` dạng text. Cần ép kiểu `Number(price)` hoặc sửa schema SQLite thành `REAL`. |
-| **`BUG_FR09_01`** | FR-09 | High (SEC-02 Auth Bypass) | **Lỗ hổng Authentication Bypass — Endpoint `/api/apply-coupon` không xác thực Bearer JWT** | Lập trình viên quên gắn middleware `authenticateToken` vào route Express. Cần bổ sung middleware và lấy `userId` từ token. |
-| **`BUG_FR09_02`** | FR-09 | Critical (Math Defect) | **Công thức tính giảm giá % bị sai: `discount_amount = total * (1 - value)` ra số âm** | Mã nguồn viết `(1 - discount_value)` thay vì `(discount_value / 100)`. Cần sửa lại công thức số học chuẩn. |
-| **`BUG_FR09_03`** | FR-09 | Medium (Boundary Defect) | **Đơn hàng bằng đúng `min_order_amount` (300k) bị từ chối 400 (Off-by-One)** | Dùng toán tử so sánh `>` thay vì `>=`. Cần sửa thành `total_amount >= coupon.min_order_amount`. |
-| **`BUG_FR17_01`** | FR-17 | Critical (OWASP A01 RBAC) | **Lỗ hổng Leo Quyền Phân Quyền (RBAC) — User thường tạo và xóa được mã Admin** | Route admin chỉ gọi `authenticateToken` mà không kiểm tra `req.user.role === 'admin'`. Cần thêm middleware `requireAdmin` chặn `403 Forbidden`. |
-| **`BUG_FR17_02`** | FR-17 | High (SEC-07 Info Leak) | **Lỗi 500 Internal Server Error & Rò rỉ CSDL SQLite khi tạo mã trùng `code UNIQUE`** | Callback SQL bắt lỗi thô sơ trả về 500 kèm chuỗi `SQLITE_CONSTRAINT`. Cần bắt lỗi trả về `409 Conflict`. |
-| **`BUG_FR17_03`** | FR-17 | Medium (Input Validation) | **Thiếu toàn bộ tầng Input Validation khi Tạo Mã Admin (cho phép giảm 200%, min < 0)** | Thiếu middleware kiểm thực schema body (Joi / Zod). Cần kiểm tra ràng buộc trước khi `INSERT INTO coupons`. |
+| Mã Bug | Thuộc Feature | Mức độ (Severity) | Tên Lỗi Kỹ Thuật | Phân tích Nguyên nhân & Cách khắc phục | GitHub Issue |
+| :---: | :---: | :---: | :--- | :--- | :---: |
+| **`BUG_FR06_01`** | FR-06 | Medium (REST Compliance) | **Endpoint trả về `200 OK` kèm body rỗng `{}` khi ID không tồn tại** | Trong `server.js`, thiếu `if (!product) return res.status(404)...`. Cần sửa thành 404. | [#2](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/2) |
+| **`BUG_FR06_02`** | FR-06 | High (SEC-01 / SEC-07) | **Thiếu Input Validation trên Path `:id`, chấp nhận SQLi và chuỗi rác** | Không kiểm tra `Number.isInteger(id) && id > 0`. Cần thêm validation middleware từ chối `400 Bad Request`. | [#3](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/3) |
+| **`BUG_FR06_03`** | FR-06 | Medium (Schema Mismatch) | **Sai lệch kiểu dữ liệu trường `price` của sản phẩm ID=2 (String thay vì Number)** | Seed CSDL lưu `'28000000'` dạng text. Cần ép kiểu `Number(price)` hoặc sửa schema SQLite thành `REAL`. | [#4](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/4) |
+| **`BUG_FR09_01`** | FR-09 | High (SEC-02 Auth Bypass) | **Lỗ hổng Authentication Bypass — Endpoint `/api/apply-coupon` không xác thực Bearer JWT** | Lập trình viên quên gắn middleware `authenticateToken` vào route Express. Cần bổ sung middleware và lấy `userId` từ token. | [#5](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/5) |
+| **`BUG_FR09_02`** | FR-09 | Critical (Math Defect) | **Công thức tính giảm giá % bị sai: `discount_amount = total * (1 - value)` ra số âm** | Mã nguồn viết `(1 - discount_value)` thay vì `(discount_value / 100)`. Cần sửa lại công thức số học chuẩn. | [#6](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/6) |
+| **`BUG_FR09_03`** | FR-09 | Medium (Boundary Defect) | **Đơn hàng bằng đúng `min_order_amount` (300k) bị từ chối 400 (Off-by-One)** | Dùng toán tử so sánh `>` thay vì `>=`. Cần sửa thành `total_amount >= coupon.min_order_amount`. | [#7](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/7) |
+| **`BUG_FR17_01`** | FR-17 | Critical (OWASP A01 RBAC) | **Lỗ hổng Leo Quyền Phân Quyền (RBAC) — User thường tạo và xóa được mã Admin** | Route admin chỉ gọi `authenticateToken` mà không kiểm tra `req.user.role === 'admin'`. Cần thêm middleware `requireAdmin` chặn `403 Forbidden`. | [#8](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/8) |
+| **`BUG_FR17_02`** | FR-17 | High (SEC-07 Info Leak) | **Lỗi 500 Internal Server Error & Rò rỉ CSDL SQLite khi tạo mã trùng `code UNIQUE`** | Callback SQL bắt lỗi thô sơ trả về 500 kèm chuỗi `SQLITE_CONSTRAINT`. Cần bắt lỗi trả về `409 Conflict`. | [#9](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/9) |
+| **`BUG_FR17_03`** | FR-17 | Medium (Input Validation) | **Thiếu toàn bộ tầng Input Validation khi Tạo Mã Admin (cho phép giảm 200%, min < 0)** | Thiếu middleware kiểm thực schema body (Joi / Zod). Cần kiểm tra ràng buộc trước khi `INSERT INTO coupons`. | [#10](https://github.com/nguyenhieuthuan3105/HW06-API_Testing/issues/10) |
 
 ---
 

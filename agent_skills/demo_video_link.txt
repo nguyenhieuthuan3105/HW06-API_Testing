@@ -1,4 +1,0 @@
-# Demo Video Link (YouTube Unlisted)
-# Thời lượng: 3 - 5 phút (Thuyết minh giọng thật, demo quá trình Agent Skill sinh test case và chạy Newman)
-
-https://youtu.be/[YOUR_DEMO_VIDEO_ID_HERE]
