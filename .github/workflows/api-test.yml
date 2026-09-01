@@ -19,7 +19,7 @@ jobs:
       - name: 2. Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 20.x
 
       - name: 3. Install Newman & HTML Extra Reporter
         run: |
@@ -30,7 +30,7 @@ jobs:
           git clone https://github.com/ttbhanh/eshop-sut.git sut_backend
           cd sut_backend/backend
           npm install
-          npm start &
+          node server.js &
           npx wait-on http://127.0.0.1:3000 -t 30000
 
       - name: 5. Execute Newman Collections (FR-06, FR-09, FR-17)

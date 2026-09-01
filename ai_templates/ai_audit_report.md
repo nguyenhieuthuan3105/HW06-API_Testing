@@ -671,6 +671,27 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
   2. Hướng dẫn quy trình tạo 2 commit chuẩn theo đúng tiêu chí Đề bài (1 Pass xanh do workflow hoàn chỉnh, 1 Fail đỏ do Newman assertion bắt trúng bug SUT mà không dùng cờ --suppress-exit-code).
   ```
 
+### Prompt 36 (Khắc phục Lỗi Chạy SUT Backend trên GitHub Actions):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 10:14 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  [Hình ảnh log lỗi step 4: Clone and Start EShop Backend SUT] tôi mới thử push lên thì như này
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt nguyên nhân & cách xử lý:
+  1. Nguyên nhân lỗi:
+     - Trong `eshop-sut/backend/package.json`, không có script `"start": "node server.js"` mà chỉ có entrypoint `server.js` trực tiếp, do đó lệnh `npm start` không thể khởi động server.
+     - Thư viện `sqlite3@6.0.1` yêu cầu Node.js >= 20.x trong khi workflow ban đầu cấu hình Node 18.x.
+  2. Cách khắc phục:
+     - Nâng cấp `node-version: 20.x` trong actions/setup-node.
+     - Thay lệnh `npm start &` bằng `node server.js &`.
+  ```
+
 ---
 
 ## Thực thi tự động với Newman, Xuất HTML Report & Săn lỗi SUT
