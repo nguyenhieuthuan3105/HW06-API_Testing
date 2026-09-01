@@ -745,6 +745,23 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
   - Hướng dẫn người dùng đẩy commit và chụp ảnh màn hình làm minh chứng cicd_one_failed.png.
   ```
 
+### Prompt 40 (Khôi phục Cấu hình Workflow Toàn diện & Hoàn tất Minh chứng CI/CD):
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 10:26 01/09/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  tôi đã chụp xong, bạn hãy chỉnh lại như cũ nhé
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  Tóm tắt thực hiện:
+  - Khôi phục cấu hình `.github/workflows/api-test.yml` tự động clone backend SUT, mở cổng TCP 3000 và chạy đầy đủ cả 3 bộ Collection (FR-06, FR-09, FR-17), tự động tải lên gói Artifact HTML Reports.
+  - Hướng dẫn người dùng đẩy commit cuối để giữ pipeline ở trạng thái Passed xanh và cập nhật báo cáo CI/CD.
+  ```
+
 ---
 
 ## Thực thi tự động với Newman, Xuất HTML Report & Săn lỗi SUT
